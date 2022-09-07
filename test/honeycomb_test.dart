@@ -1,7 +1,7 @@
 import 'package:honeycomb/honeycomb.dart';
 import 'package:test/test.dart';
 
-class MyCubit {
+class SimpleCubit {
   @override
   String toString() {
     return "MyCubit($hashCode)";
@@ -19,10 +19,10 @@ class FamilyCubit {
   }
 }
 
-class MyFamilyCubit {
+class DependentFamilyCubit {
   final FamilyCubit cubit;
 
-  MyFamilyCubit(this.cubit);
+  DependentFamilyCubit(this.cubit);
 
   @override
   String toString() {
@@ -30,7 +30,15 @@ class MyFamilyCubit {
   }
 }
 
-final cubitProvider = Provider((ref) => MyCubit());
+
+class DisposableCubit {
+  final void Function() dispose;
+
+  DisposableCubit(this.dispose);
+}
+
+
+final cubitProvider = Provider((ref) => SimpleCubit());
 final familyProvider = ProviderFactory((ref, int number) => FamilyCubit(number));
 
 void main() {
@@ -141,7 +149,7 @@ void main() {
           overrides: overrides,
         );
 
-        provider = Provider((read) => MyFamilyCubit(read(familyProvider(3))));
+        provider = Provider((read) => DependentFamilyCubit(read(familyProvider(3))));
 
         final mockedCubit1 = mockedContainer.read(familyProvider(3));
         expect(mockedCubit1.number, equals(32));
@@ -161,7 +169,7 @@ void main() {
         );
 
         provider = Provider(
-          (read) => MyFamilyCubit(read(familyProvider(3))),
+          (read) => DependentFamilyCubit(read(familyProvider(3))),
           dependencies: [familyProvider],
         );
 
@@ -210,10 +218,4 @@ void main() {
       expect(calledOnce, isTrue);
     });
   });
-}
-
-class DisposableCubit {
-  final void Function() dispose;
-
-  DisposableCubit(this.dispose);
 }
