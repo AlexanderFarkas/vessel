@@ -1,170 +1,236 @@
-class Container implements Ref {
+
+class Container {
   final Container? parent;
-  final List<OverrideBase> overrides;
+  final Map<Identifier, dynamic> _providables = {};
 
-  late final Map<Identifier, dynamic> _providables;
-  late final Map<Identifier, OverrideBase> _overrides;
+  final Map<ProviderFactory, FactoryOverride> _factoryOverrides = {};
+  final Map<ProviderBase, ProviderOverride> _providerOverrides = {};
 
-  Container({this.parent, this.overrides = const []}) {
-    refresh();
-  }
-
-  void refresh() {
-    _providables = {};
-    _overrides = {for (final o in overrides) o.origin._identifier: o};
-  }
-
-  @override
-  T read<T>(Provider<T> provider) {
-    final identifier = provider._identifier;
-    final overrideIdentifier = provider._createdBy._identifier;
-    if (_providables.containsKey(identifier)) {
-      return _providables[identifier];
-    } else if (_overrides.containsKey(overrideIdentifier)) {
-      return _providables[identifier] =
-          _overrides[overrideIdentifier]!._performOverride(provider).create(this);
-    } else if (parent != null) {
-      return parent!.read(provider);
-    } else {
-      return _providables[identifier] = provider.create(this);
+  Container({
+    this.parent,
+    List<Override> overrides = const [],
+  }) {
+    for (final override in overrides) {
+      _setOverride(override);
     }
   }
-}
 
-typedef ProviderCreate<T> = T Function(Ref ref);
+  T get<T>(ProviderBase<T> provider) {
+    final identifier = provider.identifier;
 
-abstract class Ref {
-  T read<T>(Provider<T> provider);
-}
+    if (_providables.containsKey(identifier)) {
+      return _providables[identifier];
+    }
 
-abstract class OverrideBase<T> {
-  Identifiable get origin;
-  Provider<T> _performOverride(covariant Provider<T> provider);
-}
+    final overriddenProvider = _findOverride(provider);
+    if (overriddenProvider != null) {
+      return _set(identifier, overriddenProvider);
+    }
 
-class _Override<K extends Provider<T>, T> extends OverrideBase<T> {
-  @override
-  final Identifiable origin;
-  final Provider<T> Function(K provider) performOverride;
-
-  _Override({required this.origin, required this.performOverride});
-
-  @override
-  Provider<T> _performOverride(K provider) => performOverride(provider);
-}
-
-class ProviderOverride<T> extends OverrideBase<T> {
-  @override
-  final Identifiable origin;
-
-  final ProviderCreate<T> _override;
-
-  ProviderOverride(
-    this.origin,
-    this._override,
-  );
-
-  @override
-  Provider<T> _performOverride(Provider<T> provider) {
-    return Provider(_override);
+    if (parent != null) {
+      return parent!.get(provider);
+    } else {
+      return _set(identifier, provider);
+    }
   }
-}
 
-class ProviderFactoryOverride<T, K> extends OverrideBase<T> {
-  @override
-  final Identifiable origin;
-  final Provider<T> Function(K param) _override;
+  ProviderBase<T>? _findOverride<T>(ProviderBase<T> provider) {
+    ProviderBase<dynamic>? overridden;
+    if (provider is FactoryProvider<T, dynamic>) {
+      overridden = _factoryOverrides[provider.factory]?.getOverride(provider);
+    } else {
+      overridden = _providerOverrides[provider]?._override;
+    }
 
-  ProviderFactoryOverride(
-    this.origin,
-    this._override,
-  );
+    if (overridden == null && _shouldScopeProvider(provider)) {
+      overridden = _setOverride(provider);
+    }
 
-  @override
-  Provider<T> _performOverride(_FactoryProvider<T, K> provider) {
-    return _override(provider._param);
+    return overridden as ProviderBase<T>?;
+  }
+
+  T _set<T>(Identifier key, ProviderBase<T> provider) {
+    return _providables[key] = provider.create(get);
+  }
+
+  bool _shouldScopeProvider<T>(ProviderBase<T> provider) {
+    return provider.allTransitiveDependencies.any(
+      (dep) => _factoryOverrides.containsKey(dep) || _providerOverrides.containsKey(dep),
+    );
+  }
+
+  T _setOverride<T extends Override>(T override) {
+    if (override is ProviderOverride) {
+      return _providerOverrides[override._origin] = override;
+    } else if (override is FactoryOverride) {
+      return _factoryOverrides[override._origin] = override;
+    } else {
+      throw UnimplementedError("Not implemented override: $override");
+    }
   }
 }
 
 typedef Identifier = String;
 
-abstract class Identifiable {
-  Identifier get _identifier;
+abstract class Override {}
+
+class ProviderOverride<T> extends Override {
+  final ProviderBase<T> _origin;
+  final ProviderBase<T> _override;
+
+  ProviderOverride({required ProviderBase<T> origin, required ProviderBase<T> override})
+      : _origin = origin,
+        _override = override;
 }
 
-abstract class _Node<T> {
-  Identifiable get _createdBy;
+typedef FactoryOverrideFn<TState, TArg> = ProviderBase<TState> Function(TArg);
+
+abstract class FactoryOverride<TState, TArg> extends Override {
+  final ProviderFactory<TState, TArg> _origin;
+  final FactoryOverrideFn<TState, TArg> _override;
+
+  FactoryOverride(
+      {required ProviderFactory<TState, TArg> origin,
+      required FactoryOverrideFn<TState, TArg> override})
+      : _origin = origin,
+        _override = override;
+
+  ProviderBase<TState> getOverride(FactoryProvider<TState, TArg> provider);
 }
 
-class Provider<T> extends OverrideBase<T> implements _Node, Identifiable {
-  final T Function(Ref ref) create;
+class _FactoryOverride<TState, TArg> extends FactoryOverride<TState, TArg>
+    with FactoryOverrideMixin<TState, TArg> {
+  _FactoryOverride({required super.origin, required super.override});
+}
 
-  Provider(this.create);
-
-  static ProviderFactory<T, K> factory<T, K>(ProviderCreateFactory<T, K> create) {
-    return ProviderFactory(create);
+mixin FactoryOverrideMixin<TState, TArg> on FactoryOverride<TState, TArg> {
+  @override
+  ProviderBase<TState> getOverride(FactoryProvider<TState, TArg> provider) {
+    return _override(provider.param);
   }
+}
 
-  @override
-  Identifiable get _createdBy => this;
+typedef Dispose<T> = void Function(T);
+typedef GetProvider<T> = T Function(ProviderBase<T> provider);
+typedef ProviderCreate<T> = T Function(GetProvider get);
+typedef ProviderFactoryCreate<T, K> = T Function(GetProvider get, K param);
 
-  @override
-  Identifier get _identifier => identityHashCode(this).toString();
+abstract class ProviderOrFactory<T> {
+  final Dispose<T>? dispose;
+  final List<ProviderOrFactory> dependencies;
+  late final List<ProviderOrFactory> allTransitiveDependencies =
+      _allTransitiveDependencies(dependencies);
 
-  @override
-  Provider<T> _performOverride(covariant Provider<T> provider) {
-    return this;
+  ProviderOrFactory({required this.dispose, required List<ProviderOrFactory>? dependencies})
+      : dependencies = dependencies ?? const [];
+
+  static List<ProviderOrFactory> _allTransitiveDependencies(List<ProviderOrFactory> dependencies) {
+    final deps = <ProviderOrFactory>{};
+    for (final dep in dependencies) {
+      deps.add(dep);
+      deps.addAll(dep.allTransitiveDependencies);
+    }
+
+    return deps.toList(growable: false);
   }
+}
 
-  OverrideBase<T> overrideWithProvider(Provider<T> Function() override) {
-    return _Override<Provider<T>, T>(
+abstract class ProviderBase<T> extends ProviderOrFactory<T> implements ProviderOverride<T> {
+  final ProviderCreate<T> create;
+
+  @override
+  ProviderBase<T> get _origin => this;
+
+  @override
+  ProviderBase<T> get _override => this;
+
+  Identifier get identifier;
+
+  ProviderBase(
+    this.create, {
+    required Dispose<T>? dispose,
+    required List<ProviderOrFactory>? dependencies,
+  }) : super(
+          dispose: dispose,
+          dependencies: dependencies,
+        );
+}
+
+class Provider<T> extends ProviderBase<T> {
+  Provider(
+    ProviderCreate<T> create, {
+    Dispose<T>? dispose,
+    List<ProviderOrFactory>? dependencies,
+  }) : super(create, dispose: dispose, dependencies: dependencies);
+
+  ProviderOverride<T> overrideWith(Provider<T> provider) {
+    return ProviderOverride(
       origin: this,
-      performOverride: (provider) => override(),
+      override: provider,
     );
   }
 
   @override
-  Identifiable get origin => this;
+  String get identifier => identityHashCode(this).toString();
 }
 
-class _FactoryProvider<T, K> extends Provider<T> implements _Node {
-  final K _param;
-
-  @override
-  final Identifiable _createdBy;
-
-  @override
-  Identifier get _identifier => "${identityHashCode(_createdBy)}/${_param.hashCode}";
-
-  _FactoryProvider(this._createdBy, super.create, this._param);
+abstract class ProviderFactoryBase<TState, TArg> extends ProviderOrFactory<TState>
+    implements FactoryOverride<TState, TArg> {
+  ProviderFactoryBase({required super.dispose, required super.dependencies});
 }
 
-typedef ProviderCreateFactory<T, K> = T Function(Ref ref, K param);
+class ProviderFactory<T, K> extends ProviderFactoryBase<T, K> with FactoryOverrideMixin<T, K> {
+  final ProviderFactoryCreate<T, K> create;
+  ProviderFactory(
+    this.create, {
+    super.dispose,
+    super.dependencies,
+  });
 
-class ProviderFactory<T, K> extends OverrideBase<T> implements Identifiable {
-  final ProviderCreateFactory<T, K> _create;
+  @override
+  ProviderFactory<T, K> get _origin => this;
 
-  ProviderFactory(this._create);
+  @override
+  FactoryOverrideFn<T, K> get _override => call;
 
-  Provider<T> call(K param) {
-    return _FactoryProvider(this, (ref) => _create(ref, param), param);
-  }
-
-  OverrideBase<T> overrideWithProvider(Provider<T> Function(K param) override) {
-    return _Override<_FactoryProvider<T, K>, T>(
-      origin: this,
-      performOverride: (provider) => override(provider._param),
+  ProviderBase<T> call(K param) {
+    return FactoryProvider(
+      (get) => create(get, param),
+      factory: this,
+      dependencies: dependencies,
+      dispose: dispose,
+      param: param,
     );
   }
 
-  @override
-  Identifier get _identifier => identityHashCode(this).toString();
-
-  @override
-  Provider<T> _performOverride(covariant Provider<T> provider) {
-    return provider;
+  FactoryOverride<T, K> overrideWith(ProviderBase<T> Function(K) providerBuilder) {
+    return _FactoryOverride(
+      origin: this,
+      override: providerBuilder,
+    );
   }
+}
+
+class FactoryProvider<T, K> extends ProviderBase<T> {
+  final K param;
+  final ProviderFactory<T, K> factory;
+  FactoryProvider(
+    super.create, {
+    required this.factory,
+    required super.dispose,
+    required super.dependencies,
+    required this.param,
+  });
 
   @override
-  Identifiable get origin => this;
+  String get identifier => "${identityHashCode(factory)}/${param.hashCode}";
 }
+
+///->Container
+/// >providers:[Identifiable:Provider.value]
+/// >overrides:[Identifiable:OverrideBase]
+///->Provider
+///-->
+///
+///
+///
