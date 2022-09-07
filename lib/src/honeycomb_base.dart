@@ -1,7 +1,8 @@
+import 'package:meta/meta.dart';
 
 class Container {
   final Container? parent;
-  final Map<Identifier, dynamic> _providables = {};
+  final Map<Identifier, ProviderWithState> _providables = {};
 
   final Map<ProviderFactory, FactoryOverride> _factoryOverrides = {};
   final Map<ProviderBase, ProviderOverride> _providerOverrides = {};
@@ -15,42 +16,47 @@ class Container {
     }
   }
 
-  T get<T>(ProviderBase<T> provider) {
+  T read<T>(ProviderBase<T> provider) {
     final identifier = provider.identifier;
 
     if (_providables.containsKey(identifier)) {
-      return _providables[identifier];
+      return _providables[identifier]!.state;
     }
+
+    ProviderWithState<T> create(ProviderBase<T> provider) => ProviderWithState(
+          provider,
+          provider.create(read),
+        );
 
     final overriddenProvider = _findOverride(provider);
     if (overriddenProvider != null) {
-      return _set(identifier, overriddenProvider);
+      return _set(identifier, create(overriddenProvider));
     }
 
-    if (parent != null) {
-      return parent!.get(provider);
-    } else {
-      return _set(identifier, provider);
+    return parent != null ? parent!.read(provider) : _set(identifier, create(provider));
+  }
+
+  void dispose() {
+    for (final providerWithState in _providables.values) {
+      providerWithState.dispose();
     }
   }
 
+  @visibleForTesting
+  bool isPresent(ProviderBase provider) {
+    return _providables.containsKey(provider.identifier);
+  }
+
   ProviderBase<T>? _findOverride<T>(ProviderBase<T> provider) {
-    ProviderBase<dynamic>? overridden;
-    if (provider is FactoryProvider<T, dynamic>) {
-      overridden = _factoryOverrides[provider.factory]?.getOverride(provider);
-    } else {
-      overridden = _providerOverrides[provider]?._override;
-    }
+    ProviderBase<dynamic>? overridden = provider is FactoryProvider<T, dynamic>
+        ? _factoryOverrides[provider.factory]?.getOverride(provider)
+        : _providerOverrides[provider]?._override;
 
     if (overridden == null && _shouldScopeProvider(provider)) {
       overridden = _setOverride(provider);
     }
 
     return overridden as ProviderBase<T>?;
-  }
-
-  T _set<T>(Identifier key, ProviderBase<T> provider) {
-    return _providables[key] = provider.create(get);
   }
 
   bool _shouldScopeProvider<T>(ProviderBase<T> provider) {
@@ -67,6 +73,21 @@ class Container {
     } else {
       throw UnimplementedError("Not implemented override: $override");
     }
+  }
+
+  T _set<T>(Identifier key, ProviderWithState<T> value) {
+    return (_providables[key] = value).state;
+  }
+}
+
+class ProviderWithState<TState> {
+  final ProviderBase<TState> provider;
+  final TState state;
+
+  ProviderWithState(this.provider, this.state);
+
+  void dispose() {
+    return provider.dispose?.call(state);
   }
 }
 
@@ -89,10 +110,10 @@ abstract class FactoryOverride<TState, TArg> extends Override {
   final ProviderFactory<TState, TArg> _origin;
   final FactoryOverrideFn<TState, TArg> _override;
 
-  FactoryOverride(
-      {required ProviderFactory<TState, TArg> origin,
-      required FactoryOverrideFn<TState, TArg> override})
-      : _origin = origin,
+  FactoryOverride({
+    required ProviderFactory<TState, TArg> origin,
+    required FactoryOverrideFn<TState, TArg> override,
+  })  : _origin = origin,
         _override = override;
 
   ProviderBase<TState> getOverride(FactoryProvider<TState, TArg> provider);
@@ -110,10 +131,10 @@ mixin FactoryOverrideMixin<TState, TArg> on FactoryOverride<TState, TArg> {
   }
 }
 
-typedef Dispose<T> = void Function(T);
-typedef GetProvider<T> = T Function(ProviderBase<T> provider);
-typedef ProviderCreate<T> = T Function(GetProvider get);
-typedef ProviderFactoryCreate<T, K> = T Function(GetProvider get, K param);
+typedef Dispose<T> = void Function(T state);
+typedef ReadProvider = T Function<T>(ProviderBase<T> provider);
+typedef ProviderCreate<T> = T Function(ReadProvider read);
+typedef ProviderFactoryCreate<T, K> = T Function(ReadProvider read, K param);
 
 abstract class ProviderOrFactory<T> {
   final Dispose<T>? dispose;
@@ -171,7 +192,7 @@ class Provider<T> extends ProviderBase<T> {
   }
 
   @override
-  String get identifier => identityHashCode(this).toString();
+  Identifier get identifier => identityHashCode(this).toString();
 }
 
 abstract class ProviderFactoryBase<TState, TArg> extends ProviderOrFactory<TState>
@@ -194,7 +215,7 @@ class ProviderFactory<T, K> extends ProviderFactoryBase<T, K> with FactoryOverri
   FactoryOverrideFn<T, K> get _override => call;
 
   ProviderBase<T> call(K param) {
-    return FactoryProvider(
+    return FactoryProvider<T, K>(
       (get) => create(get, param),
       factory: this,
       dependencies: dependencies,
