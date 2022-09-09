@@ -1,39 +1,81 @@
 import 'package:meta/meta.dart';
 
+late final _circularDependencySentinel = _CircularDependencySentinel();
+
 class Container {
   final Container? parent;
-  final Map<Identifier, ProviderWithState> _providables = {};
+  final int rank;
 
+  final Map<Identifier, ProviderWithState> _providables = {};
   final Map<ProviderFactory, FactoryOverride> _factoryOverrides = {};
   final Map<ProviderBase, ProviderOverride> _providerOverrides = {};
 
   Container({
     this.parent,
     List<Override> overrides = const [],
-  }) {
+  }) : rank = (parent?.rank ?? 0) + 1 {
     for (final override in overrides) {
       _setOverride(override);
     }
   }
 
   T read<T>(ProviderBase<T> provider) {
+    assert(_circularDependencySentinel.reset());
+
+    return _readWithState(provider, this).state;
+  }
+
+  ProviderWithState<T> _readWithState<T>(ProviderBase<T> provider, Container source) {
     final identifier = provider.identifier;
 
     if (_providables.containsKey(identifier)) {
-      return _providables[identifier]!.state;
+      return _providables[identifier]! as ProviderWithState<T>;
     }
 
-    ProviderWithState<T> create(ProviderBase<T> provider) => ProviderWithState(
-          provider,
-          provider.create(read),
-        );
+    ProviderWithState<T> create(ProviderBase<T> provider, {required bool isOverride}) {
+      final dependencies = <ProviderWithState>{};
+
+      final created = provider.create(<K>(ProviderBase<K> provider) {
+        final providerWithState = source._readWithState(provider, source);
+        dependencies.add(providerWithState);
+        dependencies.addAll(providerWithState.dependencies);
+
+        return providerWithState.state;
+      });
+
+      return ProviderWithState(
+        provider: provider,
+        state: created,
+        dependencies: dependencies,
+        owner: this,
+        isOverride: isOverride,
+      );
+    }
+
+    assert(_circularDependencySentinel.add(provider));
 
     final overriddenProvider = _findOverride(provider);
     if (overriddenProvider != null) {
-      return _set(identifier, create(overriddenProvider));
+      return _set(identifier, create(overriddenProvider, isOverride: true));
     }
 
-    return parent != null ? parent!.read(provider) : _set(identifier, create(provider));
+    if (parent != null) {
+      return parent!._readWithState(provider, source);
+    } else {
+      final newProvider = create(
+        provider,
+        isOverride: false,
+      );
+
+      var lowestContainerWithOverride = this;
+      for (final dependency in newProvider.dependencies) {
+        if (dependency.owner.rank > lowestContainerWithOverride.rank) {
+          lowestContainerWithOverride = dependency.owner;
+        }
+      }
+
+      return lowestContainerWithOverride._set(identifier, newProvider);
+    }
   }
 
   void dispose() {
@@ -52,17 +94,7 @@ class Container {
         ? _factoryOverrides[provider.factory]?.getOverride(provider)
         : _providerOverrides[provider]?._override;
 
-    if (overridden == null && _shouldScopeProvider(provider)) {
-      overridden = _setOverride(provider);
-    }
-
     return overridden as ProviderBase<T>?;
-  }
-
-  bool _shouldScopeProvider<T>(ProviderBase<T> provider) {
-    return provider.allTransitiveDependencies.any(
-      (dep) => _factoryOverrides.containsKey(dep) || _providerOverrides.containsKey(dep),
-    );
   }
 
   T _setOverride<T extends Override>(T override) {
@@ -75,16 +107,30 @@ class Container {
     }
   }
 
-  T _set<T>(Identifier key, ProviderWithState<T> value) {
-    return (_providables[key] = value).state;
+  ProviderWithState<T> _set<T>(Identifier key, ProviderWithState<T> value) {
+    return _providables[key] = value;
   }
 }
 
 class ProviderWithState<TState> {
   final ProviderBase<TState> provider;
   final TState state;
+  final Set<ProviderWithState> dependencies;
+  final Container owner;
+  final bool isOverride;
 
-  ProviderWithState(this.provider, this.state);
+  ProviderWithState({
+    required this.provider,
+    required this.state,
+    required this.dependencies,
+    required this.owner,
+    required this.isOverride,
+  });
+
+  @override
+  String toString() {
+    return provider.toString();
+  }
 
   void dispose() {
     return provider.dispose?.call(state);
@@ -138,26 +184,12 @@ typedef ProviderFactoryCreate<T, K> = T Function(ReadProvider read, K param);
 
 abstract class ProviderOrFactory<T> {
   final Dispose<T>? dispose;
-  final List<ProviderOrFactory> dependencies;
-  late final List<ProviderOrFactory> allTransitiveDependencies =
-      _allTransitiveDependencies(dependencies);
-
-  ProviderOrFactory({required this.dispose, required List<ProviderOrFactory>? dependencies})
-      : dependencies = dependencies ?? const [];
-
-  static List<ProviderOrFactory> _allTransitiveDependencies(List<ProviderOrFactory> dependencies) {
-    final deps = <ProviderOrFactory>{};
-    for (final dep in dependencies) {
-      deps.add(dep);
-      deps.addAll(dep.allTransitiveDependencies);
-    }
-
-    return deps.toList(growable: false);
-  }
+  ProviderOrFactory({required this.dispose});
 }
 
 abstract class ProviderBase<T> extends ProviderOrFactory<T> implements ProviderOverride<T> {
   final ProviderCreate<T> create;
+  final String? debugName;
 
   @override
   ProviderBase<T> get _origin => this;
@@ -169,20 +201,31 @@ abstract class ProviderBase<T> extends ProviderOrFactory<T> implements ProviderO
 
   ProviderBase(
     this.create, {
+    required this.debugName,
     required Dispose<T>? dispose,
-    required List<ProviderOrFactory>? dependencies,
   }) : super(
           dispose: dispose,
-          dependencies: dependencies,
         );
+
+  @override
+  int get hashCode => identifier.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is ProviderBase && other.identifier == identifier;
+  }
 }
 
-class Provider<T> extends ProviderBase<T> {
+class Provider<T> extends ProviderBase<T> with _DebugMixin {
   Provider(
     ProviderCreate<T> create, {
     Dispose<T>? dispose,
-    List<ProviderOrFactory>? dependencies,
-  }) : super(create, dispose: dispose, dependencies: dependencies);
+    String? debugName,
+  }) : super(
+          create,
+          dispose: dispose,
+          debugName: debugName,
+        );
 
   ProviderOverride<T> overrideWith(Provider<T> provider) {
     return ProviderOverride(
@@ -193,19 +236,25 @@ class Provider<T> extends ProviderBase<T> {
 
   @override
   Identifier get identifier => identityHashCode(this).toString();
+
+  @override
+  String toString() {
+    return "$runtimeType$_debugString";
+  }
 }
 
 abstract class ProviderFactoryBase<TState, TArg> extends ProviderOrFactory<TState>
     implements FactoryOverride<TState, TArg> {
-  ProviderFactoryBase({required super.dispose, required super.dependencies});
+  ProviderFactoryBase({required super.dispose});
 }
 
 class ProviderFactory<T, K> extends ProviderFactoryBase<T, K> with FactoryOverrideMixin<T, K> {
   final ProviderFactoryCreate<T, K> create;
+  final String? debugName;
   ProviderFactory(
     this.create, {
     super.dispose,
-    super.dependencies,
+    this.debugName,
   });
 
   @override
@@ -218,7 +267,7 @@ class ProviderFactory<T, K> extends ProviderFactoryBase<T, K> with FactoryOverri
     return FactoryProvider<T, K>(
       (get) => create(get, param),
       factory: this,
-      dependencies: dependencies,
+      debugName: debugName,
       dispose: dispose,
       param: param,
     );
@@ -232,19 +281,63 @@ class ProviderFactory<T, K> extends ProviderFactoryBase<T, K> with FactoryOverri
   }
 }
 
-class FactoryProvider<T, K> extends ProviderBase<T> {
+class FactoryProvider<T, K> extends ProviderBase<T> with _DebugMixin {
   final K param;
   final ProviderFactory<T, K> factory;
   FactoryProvider(
     super.create, {
     required this.factory,
+    required super.debugName,
     required super.dispose,
-    required super.dependencies,
     required this.param,
   });
 
   @override
   String get identifier => "${identityHashCode(factory)}/${param.hashCode}";
+
+  @override
+  String toString() {
+    return "${factory.runtimeType}$_debugString";
+  }
+}
+
+mixin _DebugMixin {
+  abstract final String? debugName;
+  String get _debugString => "(${debugName != null ? '$debugName:' : ''}${_shortHash(this)})";
+
+  String _shortHash(Object? object) {
+    return object.hashCode.toUnsigned(20).toRadixString(16).padLeft(5, '0');
+  }
+}
+
+class _CircularDependencySentinel {
+  final _currentChain = <ProviderBase>{};
+  var _currentCount = 0;
+
+  bool reset() {
+    _currentChain.clear();
+    _currentCount = 0;
+
+    return true;
+  }
+
+  bool add(ProviderBase provider) {
+    _currentCount++;
+    _currentChain.add(provider);
+
+    print("l: ${_currentChain.length}: $_currentCount");
+
+    if (_currentChain.length != _currentCount) {
+      throw CircularDependencyException("There is a circular dependency on $provider");
+    }
+
+    return true;
+  }
+}
+
+class CircularDependencyException implements Exception {
+  final String message;
+  CircularDependencyException(this.message);
 }
 
 ///->Container
