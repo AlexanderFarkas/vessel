@@ -322,12 +322,3 @@ class CircularDependencyException implements Exception {
     return "CircularDependencyException: $message";
   }
 }
-
-///->Container
-/// >providers:[Identifiable:Provider.value]
-/// >overrides:[Identifiable:OverrideBase]
-///->Provider
-///-->
-///
-///
-///
