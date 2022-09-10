@@ -433,9 +433,10 @@ void main() {
     });
   });
 
-  test("Depednencies count", () {
+  test("Depednencies vertical count", () {
     final providers = [];
-    for (int i = 0; i < 100; i++) {
+    const lastIndex = 50;
+    for (int i = 0; i <= lastIndex; i++) {
       if (i == 0) {
         providers.add(Provider((_) => 1));
       } else {
@@ -444,8 +445,59 @@ void main() {
     }
 
     final container = Container();
-    expect(container.dependencyCount(providers[99]), equals(null));
-    container.read(providers[99]);
-    expect(container.dependencyCount(providers[99]), equals(99));
+    expect(container.dependencyCount(providers[lastIndex]), equals(null));
+    container.read(providers[lastIndex]);
+    expect(container.dependencyCount(providers[lastIndex]), equals(lastIndex));
   });
+
+  test("Horizontal check", () {
+    const horizontalLastIndex = 50;
+    const verticalLastIndex = 50;
+    final providers = <List<ProviderBase>>[];
+
+    for (int i = 0; i <= horizontalLastIndex; i++) {
+      providers.add([]);
+      for (int j = 0; j <= verticalLastIndex; j++) {
+        if (j == 0) {
+          providers[i].add(Provider((_) => 1));
+        } else {
+          providers[i].add(Provider((read) => read(providers[i][j - 1]) + 1));
+        }
+      }
+    }
+    final container = Container();
+    for (final providerList in providers) {
+      container.read(providerList[verticalLastIndex]);
+      expect(container.dependencyCount(providerList[verticalLastIndex]), equals(verticalLastIndex));
+    }
+  });
+
+  test("f", () {
+    final provider1 = Provider((_) => Counter(0));
+    final provider2 = Provider((read) => Counter(read(provider1).count + 1));
+    final provider3 = Provider((read) => Counter(read(provider2).count + 3));
+
+    final container = Container();
+    final containerChild = Container(
+      parent: container,
+      overrides: [provider2],
+    );
+
+    // now provider3 also scoped inside containerChild
+    final instance3 = containerChild.read(provider3);
+    final rootInstance3 = container.read(provider3);
+
+    expect(identical(instance3, rootInstance3), isFalse); // false
+
+    final instance1 = containerChild.read(provider1);
+    final rootInstance1 = container.read(provider1);
+
+    // provider1 doesn't have scoped dependencies, so it doesn't become scoped.
+    expect(identical(instance1, rootInstance1), isTrue); // true
+  });
+}
+
+class Counter {
+  final int count;
+  Counter(this.count);
 }
