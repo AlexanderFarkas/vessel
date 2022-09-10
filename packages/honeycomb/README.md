@@ -274,7 +274,7 @@ Specs:
 
 I've removed all flutter dependencies from riverpod's benchmark and commented out all benchmark calls except read and create.
 
-**honeypod**:
+**honeycomb**:
 ```
 ================ RESULTS ================
 :::JSON::: {"create10_iteration":94.21000000000001,"create100_iteration":96.82000000000001,"create500_iteration":96.78,"create2000_iteration":97.65}
