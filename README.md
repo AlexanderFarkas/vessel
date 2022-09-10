@@ -30,7 +30,7 @@ Smart IoC-container
 
 * It's not a state management solution
 * Only 2 provider types
-* Providers are scoped automatically, if one of their dependencies is also scoped. Though `riverpod` should resolve dependencies faster.
+* Providers are scoped automatically if one of their dependencies is also scoped. Though `riverpod` should resolve dependencies faster on first create. 
   
 ## Getting started
 
