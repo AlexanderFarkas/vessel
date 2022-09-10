@@ -13,9 +13,8 @@ and the Flutter guide for
 
 Smart IoC-container
 
-*Disclaimer: `honeycomb` is not a state management solution. It's a tool for Dependency Injection* 
-
 ### Navigation
+- [How is it different from Riverpod?](#how-is-it-different-from-riverpod)
 - [Getting started](#getting-started)
 - [Features](#features)
   - [Providers](#providers)
@@ -25,7 +24,14 @@ Smart IoC-container
     - [Example](#example)
   - [Scopes](#scopes)
     - [Dependencies*](#dependencies)
+- [Credits](#credits)
 
+## How is it different from Riverpod?
+
+* It's not a state management solution
+* Only 2 provider types
+* Providers are scoped automatically, if one of their dependencies is also scoped. Though `riverpod` should resolve dependencies faster.
+  
 ## Getting started
 
 Define provider as global variable
@@ -255,3 +261,6 @@ final provider3 = Provider((read) => Counter(read(provider2).count + 3));
 * `provider3` has **2 dependencies**:
 >* direct dependency on `provider2`
 >* transitive dependency on `provider1` through `provider2`
+
+## Credits
+The whole project inspired by [riverpod](https://github.com/rrousselGit/riverpod), created by [Remi Rousselet](https://github.com/rrousselGit) and community.
