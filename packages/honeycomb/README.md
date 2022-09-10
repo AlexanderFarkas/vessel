@@ -274,6 +274,8 @@ Specs:
 
 I've removed all flutter dependencies from riverpod's benchmark and commented out all benchmark calls except read and create.
 
+I've run both benchmarks with `dart run`
+
 **honeycomb**:
 ```
 ================ RESULTS ================
