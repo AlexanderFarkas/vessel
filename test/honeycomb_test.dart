@@ -482,12 +482,19 @@ void main() {
       parent: container,
       overrides: [provider2],
     );
+    final containerChild2 = Container(parent: containerChild);
 
     // now provider3 also scoped inside containerChild
-    final instance3 = containerChild.read(provider3);
+    final instance3 = containerChild2.read(provider3);
     final rootInstance3 = container.read(provider3);
 
-    expect(identical(instance3, rootInstance3), isFalse); // false
+    expect(identical(instance3, rootInstance3), isFalse); // false  
+    expect(containerChild.isPresent(provider3), isTrue);
+    expect(containerChild.isPresent(provider2), isTrue);
+    expect(containerChild2.isPresent(provider3), isFalse);
+    expect(containerChild2.isPresent(provider2), isFalse);
+    expect(container.isPresent(provider3), isTrue);
+    expect(container.isPresent(provider2), isTrue);
 
     final instance1 = containerChild.read(provider1);
     final rootInstance1 = container.read(provider1);

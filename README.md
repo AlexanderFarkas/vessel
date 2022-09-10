@@ -237,8 +237,8 @@ final provider2 = Provider((read) => Counter(read(provider1).count + 1));
 final provider3 = Provider((read) => Counter(read(provider2).count + 3));
 ```
 
-`provider1` has no dependencies
-`provider2` has single dependency - on `provider1`.
-`provider3` has 2 dependencies:
-* 1 direct dependency on `provider2`
-* 1 transitive dependency on `provider3` through `provider2`
+* `provider1` has **no dependencies**<br>
+* `provider2` has **single dependency** - on `provider1`.<br>
+* `provider3` has **2 dependencies**:
+>* direct dependency on `provider2`
+>* transitive dependency on `provider1` through `provider2`
