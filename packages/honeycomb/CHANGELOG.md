@@ -1,3 +1,8 @@
+## 0.1.1+2
+
+ - **DOCS**: clarification.
+ - **DOCS**: fix typo.
+
 ## 0.1.1+1
 
  - **FIX**: remove dead code.
