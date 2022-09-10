@@ -375,7 +375,7 @@ void main() {
     );
   });
 
-  group("Hirachy test", () {
+  group("Hierachy test", () {
     ProviderContainer? c1, c2, c3, c4, c5;
 
     setUp(() {
@@ -433,47 +433,8 @@ void main() {
       );
     });
   });
-
-  test("Depednencies vertical count", () {
-    final providers = [];
-    const lastIndex = 50;
-    for (int i = 0; i <= lastIndex; i++) {
-      if (i == 0) {
-        providers.add(Provider((_) => 1));
-      } else {
-        providers.add(Provider((read) => read(providers[i - 1]) + 1));
-      }
-    }
-
-    final container = ProviderContainer();
-    expect(container.dependencyCount(providers[lastIndex]), equals(null));
-    container.read(providers[lastIndex]);
-    expect(container.dependencyCount(providers[lastIndex]), equals(lastIndex));
-  });
-
-  test("Horizontal check", () {
-    const horizontalLastIndex = 50;
-    const verticalLastIndex = 50;
-    final providers = <List<ProviderBase>>[];
-
-    for (int i = 0; i <= horizontalLastIndex; i++) {
-      providers.add([]);
-      for (int j = 0; j <= verticalLastIndex; j++) {
-        if (j == 0) {
-          providers[i].add(Provider((_) => 1));
-        } else {
-          providers[i].add(Provider((read) => read(providers[i][j - 1]) + 1));
-        }
-      }
-    }
-    final container = ProviderContainer();
-    for (final providerList in providers) {
-      container.read(providerList[verticalLastIndex]);
-      expect(container.dependencyCount(providerList[verticalLastIndex]), equals(verticalLastIndex));
-    }
-  });
-
-  test("f", () {
+  
+  test("Scoping", () {
     final provider1 = Provider((_) => Counter(0));
     final provider2 = Provider((read) => Counter(read(provider1).count + 1));
     final provider3 = Provider((read) => Counter(read(provider2).count + 3));

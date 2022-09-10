@@ -271,10 +271,8 @@ final provider3 = Provider((read) => Counter(read(provider2).count + 3));
 Specs:
 * Macbook Pro M1 Pro Monterey 12.4
 * Dart SDK version: 2.18.0 (stable) on "macos_arm64"
-
-I've removed all flutter dependencies from riverpod's benchmark and commented out all benchmark calls except read and create.
-
-I've run both benchmarks with `dart run`
+  
+I've run all benchmarks with `dart run`
 
 **honeycomb**:
 ```
@@ -293,10 +291,18 @@ read1: 37.6 ns per iteration
 read10: 33.5 ns per iteration
 read50: 33.2 ns per iteration
 read500: 33.1 ns per iteration
+
+================ RESULTS ================
+:::JSON::: {"create_indepth5":509.36,"create_indepth20":3149.37,"create_indepth40":8725.4,"create_indepth100":24210.89}
+================ FORMATTED ==============
+create_indepth5: 509.4 ns per iteration
+create_indepth20: 3149.4 ns per iteration
+create_indepth40: 8725.4 ns per iteration
+create_indepth100: 24210.9 ns per iteration
 ```
 <br>
 
-**[riverpod](https://github.com/rrousselGit/riverpod/tree/master/benchmarks)**
+**riverpod**
 
 ```
 ================ RESULTS ================
@@ -314,6 +320,14 @@ read1: 39.3 ns per iteration
 read10: 36.7 ns per iteration
 read50: 35.9 ns per iteration
 read500: 35.3 ns per iteration
+
+================ RESULTS ================
+:::JSON::: {"create_indepth5":897.5600000000001,"create_indepth20":4611.7,"create_indepth40":12094.89,"create_indepth100":31974.62}
+================ FORMATTED ==============
+create_indepth5: 897.6 ns per iteration
+create_indepth20: 4611.7 ns per iteration
+create_indepth40: 12094.9 ns per iteration
+create_indepth100: 31974.6 ns per iteration
 ```
 
 ## Is it production ready?

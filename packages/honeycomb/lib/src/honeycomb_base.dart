@@ -1,19 +1,30 @@
+import 'dart:collection';
+
 import 'package:meta/meta.dart';
 
 ProviderBase? _circularDependencySentinel;
 
 class ProviderContainer {
   final ProviderContainer? parent;
-  final int rank;
+  final int depth;
 
-  final Map<ProviderBase, ProviderWithState> _providables = {};
-  final Map<ProviderFactory, FactoryOverride> _factoryOverrides = {};
-  final Map<ProviderBase, ProviderOverride> _providerOverrides = {};
+  final Map<ProviderBase, ProviderWithState> _providables = HashMap();
+  final Map<ProviderFactory, FactoryOverride> _factoryOverrides = HashMap();
+  final Map<ProviderBase, ProviderOverride> _providerOverrides = HashMap();
+
+  late final rootContainer = () {
+    var root = this;
+    while(root.depth != 1) {
+      root = root.parent!;
+    }
+    
+    return root;
+  }();
 
   ProviderContainer({
     this.parent,
     List<Override> overrides = const [],
-  }) : rank = (parent?.rank ?? 0) + 1 {
+  }) : depth = (parent?.depth ?? 0) + 1 {
     for (final override in overrides) {
       _setOverride(override);
     }
@@ -38,12 +49,19 @@ class ProviderContainer {
       _circularDependencySentinel ??= provider;
 
       try {
-        final dependencies = <ProviderWithState>{};
+        final dependencies = HashSet<ProviderWithState>();
+        ProviderContainer deepestContainer = rootContainer;
 
         final created = provider.create(<K>(ProviderBase<K> provider) {
           final providerWithState = source._readWithState(provider, source);
-          dependencies.add(providerWithState);
-          dependencies.addAll(providerWithState.dependencies);
+          
+          void setIfDeeper(ProviderContainer owner) {
+            if (owner.depth > deepestContainer.depth) {
+              deepestContainer = owner;
+            }
+          }
+          setIfDeeper(providerWithState.deepestDependencyContainer);
+          setIfDeeper(providerWithState.owner);
 
           return providerWithState.state;
         });
@@ -51,7 +69,7 @@ class ProviderContainer {
         return ProviderWithState<T>(
           provider: provider,
           state: created,
-          dependencies: dependencies,
+          deepestDependencyContainer: deepestContainer,
           owner: this,
           isOverride: isOverride,
         );
@@ -73,14 +91,7 @@ class ProviderContainer {
         isOverride: false,
       );
 
-      var lowestContainerWithOverride = this;
-      for (final dependency in newProvider.dependencies) {
-        if (dependency.owner.rank > lowestContainerWithOverride.rank) {
-          lowestContainerWithOverride = dependency.owner;
-        }
-      }
-
-      return lowestContainerWithOverride._set(identifier, newProvider);
+      return newProvider.deepestDependencyContainer._set(identifier, newProvider);
     }
   }
 
@@ -93,11 +104,6 @@ class ProviderContainer {
   @visibleForTesting
   bool isPresent(ProviderBase provider) {
     return _providables.containsKey(provider);
-  }
-
-  @visibleForTesting
-  int? dependencyCount(ProviderBase provider) {
-    return _providables[provider]?.dependencies.length;
   }
 
   ProviderBase<T>? _findOverride<T>(ProviderBase<T> provider) {
@@ -126,16 +132,18 @@ class ProviderContainer {
 class ProviderWithState<TState> {
   final ProviderBase<TState> provider;
   final TState state;
-  final Set<ProviderWithState> dependencies;
+  // final Set<ProviderWithState> dependencies;
+  final ProviderContainer deepestDependencyContainer;
   final ProviderContainer owner;
   final bool isOverride;
 
   ProviderWithState({
     required this.provider,
     required this.state,
-    required this.dependencies,
+    // required this.dependencies,
     required this.owner,
     required this.isOverride,
+    required this.deepestDependencyContainer, 
   });
 
   @override
