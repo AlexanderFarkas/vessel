@@ -95,6 +95,11 @@ class Container {
     return _providables.containsKey(provider);
   }
 
+  @visibleForTesting
+  int? dependencyCount(ProviderBase provider) {
+    return _providables[provider]?.dependencies.length;
+  }
+
   ProviderBase<T>? _findOverride<T>(ProviderBase<T> provider) {
     ProviderBase<dynamic>? overridden = provider is FactoryProvider<T, dynamic>
         ? _factoryOverrides[provider.factory]?.getOverride(provider)

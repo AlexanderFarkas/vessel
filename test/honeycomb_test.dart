@@ -432,4 +432,20 @@ void main() {
       );
     });
   });
+
+  test("Depednencies count", () {
+    final providers = [];
+    for (int i = 0; i < 100; i++) {
+      if (i == 0) {
+        providers.add(Provider((_) => 1));
+      } else {
+        providers.add(Provider((read) => read(providers[i - 1]) + 1));
+      }
+    }
+
+    final container = Container();
+    expect(container.dependencyCount(providers[99]), equals(null));
+    container.read(providers[99]);
+    expect(container.dependencyCount(providers[99]), equals(99));
+  });
 }
