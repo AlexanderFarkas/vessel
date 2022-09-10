@@ -3,6 +3,6 @@
  - **FEAT**: added commit hooks.
  - **FEAT**: integrated melos.
 
-## 1.0.0
+## 0.1.0
 
 - Initial version.
