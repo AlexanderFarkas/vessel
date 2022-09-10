@@ -1,12 +1,12 @@
 import 'package:meta/meta.dart';
 
-late final _circularDependencySentinel = _CircularDependencySentinel();
+ProviderBase? _circularDependencySentinel;
 
 class Container {
   final Container? parent;
   final int rank;
 
-  final Map<Identifier, ProviderWithState> _providables = {};
+  final Map<ProviderBase, ProviderWithState> _providables = {};
   final Map<ProviderFactory, FactoryOverride> _factoryOverrides = {};
   final Map<ProviderBase, ProviderOverride> _providerOverrides = {};
 
@@ -20,39 +20,45 @@ class Container {
   }
 
   T read<T>(ProviderBase<T> provider) {
-    assert(_circularDependencySentinel.reset());
-
     return _readWithState(provider, this).state;
   }
 
-  ProviderWithState<T> _readWithState<T>(ProviderBase<T> provider, Container source) {
-    final identifier = provider.identifier;
+  ProviderWithState _readWithState<T>(ProviderBase<T> provider, Container source) {
+    final identifier = provider;
 
     if (_providables.containsKey(identifier)) {
-      return _providables[identifier]! as ProviderWithState<T>;
+      return _providables[identifier]!;
     }
 
     ProviderWithState<T> create(ProviderBase<T> provider, {required bool isOverride}) {
-      final dependencies = <ProviderWithState>{};
+      if (_circularDependencySentinel == provider) {
+        throw CircularDependencyException("There is a circular dependency on $provider");
+      }
 
-      final created = provider.create(<K>(ProviderBase<K> provider) {
-        final providerWithState = source._readWithState(provider, source);
-        dependencies.add(providerWithState);
-        dependencies.addAll(providerWithState.dependencies);
+      _circularDependencySentinel ??= provider;
 
-        return providerWithState.state;
-      });
+      try {
+        final dependencies = <ProviderWithState>{};
 
-      return ProviderWithState(
-        provider: provider,
-        state: created,
-        dependencies: dependencies,
-        owner: this,
-        isOverride: isOverride,
-      );
+        final created = provider.create(<K>(ProviderBase<K> provider) {
+          final providerWithState = source._readWithState(provider, source);
+          dependencies.add(providerWithState);
+          dependencies.addAll(providerWithState.dependencies);
+
+          return providerWithState.state;
+        });
+
+        return ProviderWithState<T>(
+          provider: provider,
+          state: created,
+          dependencies: dependencies,
+          owner: this,
+          isOverride: isOverride,
+        );
+      } finally {
+        _circularDependencySentinel = null;
+      }
     }
-
-    assert(_circularDependencySentinel.add(provider));
 
     final overriddenProvider = _findOverride(provider);
     if (overriddenProvider != null) {
@@ -86,7 +92,7 @@ class Container {
 
   @visibleForTesting
   bool isPresent(ProviderBase provider) {
-    return _providables.containsKey(provider.identifier);
+    return _providables.containsKey(provider);
   }
 
   ProviderBase<T>? _findOverride<T>(ProviderBase<T> provider) {
@@ -107,7 +113,7 @@ class Container {
     }
   }
 
-  ProviderWithState<T> _set<T>(Identifier key, ProviderWithState<T> value) {
+  ProviderWithState<T> _set<T>(ProviderBase<T> key, ProviderWithState<T> value) {
     return _providables[key] = value;
   }
 }
@@ -197,8 +203,6 @@ abstract class ProviderBase<T> extends ProviderOrFactory<T> implements ProviderO
   @override
   ProviderBase<T> get _override => this;
 
-  Identifier get identifier;
-
   ProviderBase(
     this.create, {
     required this.debugName,
@@ -206,14 +210,6 @@ abstract class ProviderBase<T> extends ProviderOrFactory<T> implements ProviderO
   }) : super(
           dispose: dispose,
         );
-
-  @override
-  int get hashCode => identifier.hashCode;
-
-  @override
-  bool operator ==(Object other) {
-    return other is ProviderBase && other.identifier == identifier;
-  }
 }
 
 class Provider<T> extends ProviderBase<T> with _DebugMixin {
@@ -233,9 +229,6 @@ class Provider<T> extends ProviderBase<T> with _DebugMixin {
       override: provider,
     );
   }
-
-  @override
-  Identifier get identifier => identityHashCode(this).toString();
 
   @override
   String toString() {
@@ -293,7 +286,12 @@ class FactoryProvider<T, K> extends ProviderBase<T> with _DebugMixin {
   });
 
   @override
-  String get identifier => "${identityHashCode(factory)}/${param.hashCode}";
+  int get hashCode => identityHashCode(factory) ^ param.hashCode;
+
+  @override
+  bool operator ==(Object other) {
+    return other is FactoryProvider && other.factory == factory && other.param == param;
+  }
 
   @override
   String toString() {
@@ -310,34 +308,14 @@ mixin _DebugMixin {
   }
 }
 
-class _CircularDependencySentinel {
-  final _currentChain = <ProviderBase>{};
-  var _currentCount = 0;
-
-  bool reset() {
-    _currentChain.clear();
-    _currentCount = 0;
-
-    return true;
-  }
-
-  bool add(ProviderBase provider) {
-    _currentCount++;
-    _currentChain.add(provider);
-
-    print("l: ${_currentChain.length}: $_currentCount");
-
-    if (_currentChain.length != _currentCount) {
-      throw CircularDependencyException("There is a circular dependency on $provider");
-    }
-
-    return true;
-  }
-}
-
 class CircularDependencyException implements Exception {
   final String message;
   CircularDependencyException(this.message);
+
+  @override
+  String toString() {
+    return "CircularDependencyException: $message";
+  }
 }
 
 ///->Container
