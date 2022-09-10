@@ -1,0 +1,13 @@
+name: honeycomb
+repository: https://github.com/AlexanderFarkas/honeycomb
+
+packages:
+  - packages/**
+
+command:
+  bootstrap:
+    usePubspecOverrides: true
+  
+scripts:
+  test:
+    exec: dart test    
