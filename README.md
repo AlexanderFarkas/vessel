@@ -19,7 +19,8 @@ Smart IoC-container
 - [Getting started](#getting-started)
 - [Features](#features)
   - [Providers](#providers)
-  - [Show me DI](#show-me-di)
+    - [Injecting providers](#injecting-providers)
+    - [Disposing providers](#disposing-providers)
   - [Overrides](#overrides)
     - [Example](#example)
   - [Scopes](#scopes)
@@ -90,7 +91,7 @@ or just:
 container.read(userVmProvider(100)) // UserVM.userId === 100
 ```
 
-### Show me DI
+#### Injecting providers
 ```dart
 final cartRepositoryProvider = Provider(
     (_) => CartRepository(),
@@ -105,6 +106,18 @@ final cartViewModelProvider = ProviderFactory((read, int cartId) {
 })
 ```
 
+#### Disposing providers
+```dart
+final cartViewModelProvider = Provider(
+    (read) =>  CartViewModel(...),
+    dispose: (CartViewModel vm) => vm.dispose(),
+);
+```
+
+Container has `dispose` method, which disposes all providers within it.
+```dart
+container.dispose();
+```
 
 ### Overrides
 
