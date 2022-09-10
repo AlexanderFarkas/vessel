@@ -24,13 +24,15 @@ Smart IoC-container
     - [Example](#example)
   - [Scopes](#scopes)
     - [Dependencies*](#dependencies)
+- [Benchmark comparison](#benchmark-comparison)
+- [Is it production ready?](#is-it-production-ready)
 - [Credits](#credits)
 
 ## How is it different from Riverpod?
 
 * It's not a state management solution
 * Only 2 provider types
-* Providers are scoped automatically if one of their dependencies is also scoped. Though `riverpod` should resolve dependencies faster on first create. 
+* Providers are scoped automatically if one of their dependencies is also scoped.
   
 ## Getting started
 
@@ -45,7 +47,7 @@ final counterProvider = Provider((read) => Counter());
 
 Create container - it holds all providables
 ```dart
-final container = Container();
+final container = ProviderContainer();
 ```
 
 Read provider
@@ -129,7 +131,7 @@ container.dispose();
 
 You can override any provider with any other provider of compatible type.
 ```dart
-    final container = Container(
+    final container = ProviderContainer(
         overrides: [
             userRepositoryProvider.overrideWith(mockUserRepositoryProvider)
         ]
@@ -183,7 +185,7 @@ class MockUserRepository implements UserRepository {
 
 final mockRepositoryProvider = Provider<UserRepository>(() => MockUserRepository());
 
-final containerWithOverride = Container(
+final containerWithOverride = ProviderContainer(
     overrides: [
         userRepositoryProvider.overrideWith(mockRepositoryProvider),
     ],
@@ -200,8 +202,8 @@ void main() {
 Providers can be scoped:
 ```dart
 final userProvider = Provider((_) => User(...));
-final containerRoot = Container();
-final containerChild = Container(
+final containerRoot = ProviderContainer();
+final containerChild = ProviderContainer(
     parent: containerRoot, 
     overrides: [userProvider],
 );
@@ -227,8 +229,8 @@ final provider2 = Provider((read) => Counter(read(provider1).count + 1));
 final provider3 = Provider((read) => Counter(read(provider2).count + 3));
 
 
-final container = Container();
-final containerChild = Container(
+final container = ProviderContainer();
+final containerChild = ProviderContainer(
     parent: container, 
     overrides: [provider2],
 );
@@ -261,6 +263,60 @@ final provider3 = Provider((read) => Counter(read(provider2).count + 3));
 * `provider3` has **2 dependencies**:
 >* direct dependency on `provider2`
 >* transitive dependency on `provider1` through `provider2`
+
+## Benchmark comparison
+
+**Disclaimer:** Always benchmark yourself
+
+Specs:
+* Macbook Pro M1 Pro Monterey 12.4
+* Dart SDK version: 2.18.0 (stable) on "macos_arm64"
+
+I've removed all flutter dependencies from riverpod's benchmark and commented out all benchmark calls except read and create.
+
+**honeypod**:
+```
+================ RESULTS ================
+:::JSON::: {"create10_iteration":94.21000000000001,"create100_iteration":96.82000000000001,"create500_iteration":96.78,"create2000_iteration":97.65}
+================ FORMATTED ==============
+create10: 94.2 ns per iteration
+create100: 96.8 ns per iteration
+create500: 96.8 ns per iteration
+create2000: 97.7 ns per iteration
+
+================ RESULTS ================
+:::JSON::: {"read1_iteration":37.550000000000004,"read10_iteration":33.5,"read50_iteration":33.22,"read500_iteration":33.12}
+================ FORMATTED ==============
+read1: 37.6 ns per iteration
+read10: 33.5 ns per iteration
+read50: 33.2 ns per iteration
+read500: 33.1 ns per iteration
+```
+<br>
+
+**[riverpod](https://github.com/rrousselGit/riverpod/tree/master/benchmarks)**
+
+```
+================ RESULTS ================
+:::JSON::: {"create10_iteration":153.81,"create100_iteration":155.49,"create500_iteration":156.42000000000002,"create2000_iteration":155.62}
+================ FORMATTED ==============
+create10: 153.8 ns per iteration
+create100: 155.5 ns per iteration
+create500: 156.4 ns per iteration
+create2000: 155.6 ns per iteration
+
+================ RESULTS ================
+:::JSON::: {"read1_iteration":39.27,"read10_iteration":36.68,"read50_iteration":35.92,"read500_iteration":35.32}
+================ FORMATTED ==============
+read1: 39.3 ns per iteration
+read10: 36.7 ns per iteration
+read50: 35.9 ns per iteration
+read500: 35.3 ns per iteration
+```
+
+## Is it production ready?
+Not enough testing have been done to consider this production ready.
+But I'm going to use it on production project.
 
 ## Credits
 The whole project inspired by [riverpod](https://github.com/rrousselGit/riverpod), created by [Remi Rousselet](https://github.com/rrousselGit) and community.

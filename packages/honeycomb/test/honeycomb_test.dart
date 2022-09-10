@@ -40,14 +40,15 @@ final cubitProvider = Provider((ref) => SimpleCubit());
 final familyProvider = ProviderFactory((ref, int number) => FamilyCubit(number));
 
 void main() {
-  late Container container;
-  late Container childWithOverrides;
-  late Container childWithoutOverrides;
+  late ProviderContainer container;
+  late ProviderContainer childWithOverrides;
+  late ProviderContainer childWithoutOverrides;
 
   setUp(() {
-    container = Container();
-    childWithoutOverrides = Container(parent: container);
-    childWithOverrides = Container(parent: container, overrides: [cubitProvider, familyProvider]);
+    container = ProviderContainer();
+    childWithoutOverrides = ProviderContainer(parent: container);
+    childWithOverrides =
+        ProviderContainer(parent: container, overrides: [cubitProvider, familyProvider]);
   });
 
   test("Always same", () {
@@ -117,7 +118,7 @@ void main() {
 
   test("Override with mock", () {
     final mockFamilyCubitProvider = Provider((ref) => FamilyCubit(32));
-    final mockedContainer = Container(
+    final mockedContainer = ProviderContainer(
       overrides: [
         familyProvider.overrideWith((param) => mockFamilyCubitProvider),
       ],
@@ -142,7 +143,7 @@ void main() {
       });
 
       test("Lost inside child container without dependencies", () {
-        final mockedContainer = Container(
+        final mockedContainer = ProviderContainer(
           parent: container,
           overrides: overrides,
         );
@@ -161,7 +162,7 @@ void main() {
       });
 
       test("remains overridden inside child container with dependencies", () {
-        final mockedContainer = Container(
+        final mockedContainer = ProviderContainer(
           parent: container,
           overrides: overrides,
         );
@@ -183,7 +184,7 @@ void main() {
       });
 
       test("remains overridden inside root container", () {
-        final mockedContainer = Container(
+        final mockedContainer = ProviderContainer(
           overrides: overrides,
         );
         final mockedCubit1 = mockedContainer.read(familyProvider(3));
@@ -266,23 +267,23 @@ void main() {
     group(
       "Part 1",
       () {
-        late Container container;
-        late Container containerRank2;
-        late Container containerRank3;
-        late Container otherContainerRank3;
+        late ProviderContainer container;
+        late ProviderContainer containerRank2;
+        late ProviderContainer containerRank3;
+        late ProviderContainer otherContainerRank3;
 
         setUp(() {
-          container = Container();
-          containerRank2 = Container(
+          container = ProviderContainer();
+          containerRank2 = ProviderContainer(
             parent: container,
             overrides: [
               provider2.overrideWith(mockProvider2),
             ],
           );
-          containerRank3 = Container(parent: containerRank2, overrides: [
+          containerRank3 = ProviderContainer(parent: containerRank2, overrides: [
             provider2,
           ]);
-          otherContainerRank3 = Container(parent: containerRank2);
+          otherContainerRank3 = ProviderContainer(parent: containerRank2);
         });
 
         test("1", () {
@@ -304,12 +305,12 @@ void main() {
         final mockTripleThenSquared =
             ProviderFactory((read, int number) => read(providerFactoryDoubled(number * 3)));
 
-        late Container container;
-        late Container containerRank2;
+        late ProviderContainer container;
+        late ProviderContainer containerRank2;
 
         setUp(() {
-          container = Container();
-          containerRank2 = Container(
+          container = ProviderContainer();
+          containerRank2 = ProviderContainer(
             parent: container,
             overrides: [
               providerTripleThenSquared.overrideWith(mockTripleThenSquared),
@@ -341,12 +342,12 @@ void main() {
     group(
       "Part 3",
       () {
-        late Container container;
-        late Container containerRank2;
+        late ProviderContainer container;
+        late ProviderContainer containerRank2;
 
         setUp(() {
-          container = Container();
-          containerRank2 = Container(parent: container);
+          container = ProviderContainer();
+          containerRank2 = ProviderContainer(parent: container);
         });
 
         test("1", () {
@@ -375,20 +376,20 @@ void main() {
   });
 
   group("Hirachy test", () {
-    Container? c1, c2, c3, c4, c5;
+    ProviderContainer? c1, c2, c3, c4, c5;
 
     setUp(() {
-      c1 = Container();
-      c2 = Container(parent: c1);
-      c3 = Container(parent: c2);
+      c1 = ProviderContainer();
+      c2 = ProviderContainer(parent: c1);
+      c3 = ProviderContainer(parent: c2);
     });
 
     test("Single", () {
       final provider = Provider((_) => 1);
       final override = Provider((_) => 2);
 
-      c4 = Container(parent: c3, overrides: [provider.overrideWith(override)]);
-      c5 = Container(parent: c4);
+      c4 = ProviderContainer(parent: c3, overrides: [provider.overrideWith(override)]);
+      c5 = ProviderContainer(parent: c4);
 
       expect(c3!.read(provider), 1);
       expect(c1!.isPresent(provider), isTrue);
@@ -410,11 +411,11 @@ void main() {
       final providerFactory = ProviderFactory<int, String>((_, value) => value.length);
       final providerFactoryOverride = ProviderFactory<int, String>((_, value) => value.length * 2);
 
-      c4 = Container(
+      c4 = ProviderContainer(
         parent: c3,
         overrides: [providerFactory.overrideWith(providerFactoryOverride)],
       );
-      c5 = Container(parent: c4);
+      c5 = ProviderContainer(parent: c4);
 
       expect(c3!.read(providerFactory("Hello")), 5);
       expect(c1!.isPresent(providerFactory("Hello")), isTrue);
@@ -444,7 +445,7 @@ void main() {
       }
     }
 
-    final container = Container();
+    final container = ProviderContainer();
     expect(container.dependencyCount(providers[lastIndex]), equals(null));
     container.read(providers[lastIndex]);
     expect(container.dependencyCount(providers[lastIndex]), equals(lastIndex));
@@ -465,7 +466,7 @@ void main() {
         }
       }
     }
-    final container = Container();
+    final container = ProviderContainer();
     for (final providerList in providers) {
       container.read(providerList[verticalLastIndex]);
       expect(container.dependencyCount(providerList[verticalLastIndex]), equals(verticalLastIndex));
@@ -477,18 +478,18 @@ void main() {
     final provider2 = Provider((read) => Counter(read(provider1).count + 1));
     final provider3 = Provider((read) => Counter(read(provider2).count + 3));
 
-    final container = Container();
-    final containerChild = Container(
+    final container = ProviderContainer();
+    final containerChild = ProviderContainer(
       parent: container,
       overrides: [provider2],
     );
-    final containerChild2 = Container(parent: containerChild);
+    final containerChild2 = ProviderContainer(parent: containerChild);
 
     // now provider3 also scoped inside containerChild
     final instance3 = containerChild2.read(provider3);
     final rootInstance3 = container.read(provider3);
 
-    expect(identical(instance3, rootInstance3), isFalse); // false  
+    expect(identical(instance3, rootInstance3), isFalse); // false
     expect(containerChild.isPresent(provider3), isTrue);
     expect(containerChild.isPresent(provider2), isTrue);
     expect(containerChild2.isPresent(provider3), isFalse);

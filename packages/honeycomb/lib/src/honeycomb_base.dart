@@ -2,15 +2,15 @@ import 'package:meta/meta.dart';
 
 ProviderBase? _circularDependencySentinel;
 
-class Container {
-  final Container? parent;
+class ProviderContainer {
+  final ProviderContainer? parent;
   final int rank;
 
   final Map<ProviderBase, ProviderWithState> _providables = {};
   final Map<ProviderFactory, FactoryOverride> _factoryOverrides = {};
   final Map<ProviderBase, ProviderOverride> _providerOverrides = {};
 
-  Container({
+  ProviderContainer({
     this.parent,
     List<Override> overrides = const [],
   }) : rank = (parent?.rank ?? 0) + 1 {
@@ -23,7 +23,7 @@ class Container {
     return _readWithState(provider, this).state;
   }
 
-  ProviderWithState _readWithState<T>(ProviderBase<T> provider, Container source) {
+  ProviderWithState _readWithState<T>(ProviderBase<T> provider, ProviderContainer source) {
     final identifier = provider;
 
     if (_providables.containsKey(identifier)) {
@@ -127,7 +127,7 @@ class ProviderWithState<TState> {
   final ProviderBase<TState> provider;
   final TState state;
   final Set<ProviderWithState> dependencies;
-  final Container owner;
+  final ProviderContainer owner;
   final bool isOverride;
 
   ProviderWithState({
