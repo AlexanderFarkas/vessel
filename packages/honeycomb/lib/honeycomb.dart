@@ -3,6 +3,9 @@
 /// More dartdocs go here.
 library honeycomb;
 
-export 'src/honeycomb_base.dart';
+import 'package:meta/meta.dart';
+part './src/container.dart';
+part './src/honeycomb_base.dart';
+
 
 // TODO: Export any libraries intended for clients of this package.

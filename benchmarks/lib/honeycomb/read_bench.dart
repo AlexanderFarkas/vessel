@@ -16,19 +16,19 @@ void main() {
   );
 
   final printer = BenchmarkResultPrinter();
-  var container = ProviderContainer();
+  var container = ProviderContainer.root();
   const scale = 1000.0 / _kNumIterations;
   final watch = Stopwatch();
   final provider = Provider((ref) => 0);
 
   // Warm up lap
   for (var i = 0; i < _kNumWarmUp; i += 1) {
-    container = ProviderContainer();
+    container = ProviderContainer.root();
     final providers = List.generate(500, (index) => Provider((ref) => index));
     providers.forEach(container.read);
   }
 
-  container = ProviderContainer();
+  container = ProviderContainer.root();
   watch.start();
   for (var i = 0; i < _kNumIterations; i += 1) {
     container.read(provider);
@@ -43,7 +43,7 @@ void main() {
     name: 'read1_iteration',
   );
 
-  container = ProviderContainer();
+  container = ProviderContainer.root();
   pushProviders(10, container);
   watch.reset();
   watch.start();
@@ -61,7 +61,7 @@ void main() {
     name: 'read10_iteration',
   );
 
-  container = ProviderContainer();
+  container = ProviderContainer.root();
   pushProviders(50, container);
   watch.reset();
   watch.start();
@@ -79,7 +79,7 @@ void main() {
     name: 'read50_iteration',
   );
 
-  container = ProviderContainer();
+  container = ProviderContainer.root();
   pushProviders(500, container);
   watch.reset();
   watch.start();

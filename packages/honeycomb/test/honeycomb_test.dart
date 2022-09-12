@@ -45,10 +45,17 @@ void main() {
   late ProviderContainer childWithoutOverrides;
 
   setUp(() {
-    container = ProviderContainer();
-    childWithoutOverrides = ProviderContainer(parent: container);
-    childWithOverrides =
-        ProviderContainer(parent: container, overrides: [cubitProvider, familyProvider]);
+    container = ProviderContainer.root();
+    
+    childWithoutOverrides = ProviderContainer.scoped(
+      [],
+      parent: container,
+    );
+
+    childWithOverrides = ProviderContainer.scoped(
+      [cubitProvider, familyProvider],
+      parent: container,
+    );
   });
 
   test("Always same", () {
@@ -82,6 +89,8 @@ void main() {
 
     group('With overrides', () {
       test("Single", () {
+        print("he");
+        
         final cubit1 = container.read(cubitProvider);
         final cubit2 = childWithOverrides.read(cubitProvider);
 
@@ -118,7 +127,7 @@ void main() {
 
   test("Override with mock", () {
     final mockFamilyCubitProvider = Provider((ref) => FamilyCubit(32));
-    final mockedContainer = ProviderContainer(
+    final mockedContainer = ProviderContainer.root(
       overrides: [
         familyProvider.overrideWith((param) => mockFamilyCubitProvider),
       ],
@@ -142,309 +151,310 @@ void main() {
         ];
       });
 
-      test("Lost inside child container without dependencies", () {
-        final mockedContainer = ProviderContainer(
-          parent: container,
-          overrides: overrides,
-        );
+      // test("Lost inside child container without dependencies", () {
+      //   final mockedContainer = ProviderContainer.scoped(
+      //     parent: container,
+      //     overrides: overrides,
+      //   );
 
-        provider = Provider((read) => DependentFamilyCubit(read(familyProvider(3))));
+      //   provider = Provider((read) => DependentFamilyCubit(read(familyProvider(3))));
 
-        final mockedCubit1 = mockedContainer.read(familyProvider(3));
-        expect(mockedCubit1.number, equals(32));
+      //   final mockedCubit1 = mockedContainer.read(familyProvider(3));
+      //   expect(mockedCubit1.number, equals(32));
 
-        final mockedCubit2 = mockedContainer.read(provider).cubit;
-        expect(mockedContainer.isPresent(familyProvider(3)), isTrue);
-        expect(mockedContainer.isPresent(provider), isTrue);
-        expect(container.isPresent(familyProvider(3)), isFalse);
-        expect(container.isPresent(provider), isFalse);
-        expect(mockedCubit1.number, equals(mockedCubit2.number));
+      //   final mockedCubit2 = mockedContainer.read(provider).cubit;
+      //   expect(mockedContainer.isPresent(familyProvider(3)), isTrue);
+      //   expect(mockedContainer.isPresent(provider), isTrue);
+      //   expect(container.isPresent(familyProvider(3)), isFalse);
+      //   expect(container.isPresent(provider), isFalse);
+      //   expect(mockedCubit1.number, equals(mockedCubit2.number));
+      // });
+
+      //   test("remains overridden inside child container with dependencies", () {
+      //     final mockedContainer = ProviderContainer(
+      //       parent: container,
+      //       overrides: overrides,
+      //     );
+
+      //     provider = Provider(
+      //       (read) => DependentFamilyCubit(read(familyProvider(3))),
+      //     );
+
+      //     final mockedCubit1 = mockedContainer.read(familyProvider(3));
+      //     expect(mockedCubit1.number, equals(32));
+
+      //     final mockedCubit2 = mockedContainer.read(provider).cubit;
+      //     expect(mockedContainer.isPresent(familyProvider(3)), isTrue);
+      //     expect(mockedContainer.isPresent(provider), isTrue);
+      //     expect(container.isPresent(familyProvider(3)), isFalse);
+      //     expect(container.isPresent(provider), isFalse);
+
+      //     expect(mockedCubit1.number, equals(mockedCubit2.number));
+      //   });
+
+      //   test("remains overridden inside root container", () {
+      //     final mockedContainer = ProviderContainer(
+      //       overrides: overrides,
+      //     );
+      //     final mockedCubit1 = mockedContainer.read(familyProvider(3));
+      //     expect(mockedCubit1.number, equals(32));
+
+      //     final mockedCubit2 = mockedContainer.read(provider).cubit;
+      //     expect(mockedContainer.isPresent(familyProvider(3)), isTrue);
+      //     expect(mockedContainer.isPresent(provider), isTrue);
+      //     expect(container.isPresent(familyProvider(3)), isFalse);
+      //     expect(container.isPresent(provider), isFalse);
+      //     expect(mockedCubit1.number, equals(mockedCubit2.number));
+      //   });
+      // },
+      // );
+
+      group("Dispose", () {
+        test("Simple", () {
+          var calledOnce = false;
+          final disposable = Provider<DisposableCubit>(
+            (_) => DisposableCubit(() => calledOnce = true),
+            dispose: (cubit) => cubit.dispose(),
+          );
+
+          container.read(disposable);
+          expect(container.isPresent(disposable), isTrue);
+          expect(calledOnce, isFalse);
+
+          container.dispose();
+          expect(calledOnce, isTrue);
+        });
       });
 
-      test("remains overridden inside child container with dependencies", () {
-        final mockedContainer = ProviderContainer(
-          parent: container,
-          overrides: overrides,
-        );
+      // group("Integration test 1", () {
+      //   final providerFactorySquared = ProviderFactory((read, int value) {
+      //     return value * value;
+      //   });
 
-        provider = Provider(
-          (read) => DependentFamilyCubit(read(familyProvider(3))),
-        );
+      //   final providerTripleThenSquared = ProviderFactory((read, int value) {
+      //     return read(providerFactorySquared(value * 3));
+      //   });
 
-        final mockedCubit1 = mockedContainer.read(familyProvider(3));
-        expect(mockedCubit1.number, equals(32));
+      //   final providerFactoryDoubled = ProviderFactory((read, int value) {
+      //     return value * 2;
+      //   });
 
-        final mockedCubit2 = mockedContainer.read(provider).cubit;
-        expect(mockedContainer.isPresent(familyProvider(3)), isTrue);
-        expect(mockedContainer.isPresent(provider), isTrue);
-        expect(container.isPresent(familyProvider(3)), isFalse);
-        expect(container.isPresent(provider), isFalse);
+      //   final provider5 = Provider((read) => 5);
+      //   final provider4 = Provider(
+      //     (read) {
+      //       read(provider5);
 
-        expect(mockedCubit1.number, equals(mockedCubit2.number));
-      });
+      //       return 4;
+      //     },
+      //   );
+      //   final provider2 = Provider(
+      //     (read) {
+      //       read(provider4);
+      //       read(provider5);
 
-      test("remains overridden inside root container", () {
-        final mockedContainer = ProviderContainer(
-          overrides: overrides,
-        );
-        final mockedCubit1 = mockedContainer.read(familyProvider(3));
-        expect(mockedCubit1.number, equals(32));
+      //       return read(providerFactoryDoubled(4));
+      //     },
+      //     debugName: "provider2",
+      //   );
+      //   final provider3 = Provider((read) {
+      //     read(provider4);
+      //     read(provider5);
 
-        final mockedCubit2 = mockedContainer.read(provider).cubit;
-        expect(mockedContainer.isPresent(familyProvider(3)), isTrue);
-        expect(mockedContainer.isPresent(provider), isTrue);
-        expect(container.isPresent(familyProvider(3)), isFalse);
-        expect(container.isPresent(provider), isFalse);
-        expect(mockedCubit1.number, equals(mockedCubit2.number));
-      });
+      //     return read(providerFactorySquared(3));
+      //   });
+      //   final provider1 = Provider(
+      //     (read) {
+      //       read(provider2);
+      //       read(provider3);
+
+      //       return 1;
+      //     },
+      //   );
+
+      //   final mockProvider2 = Provider((_) => 22);
+
+      // group(
+      //   "Part 1",
+      //   () {
+      //     late ProviderContainer container;
+      //     late ProviderContainer containerRank2;
+      //     late ProviderContainer containerRank3;
+      //     late ProviderContainer otherContainerRank3;
+
+      //     setUp(() {
+      //       container = ProviderContainer();
+      //       containerRank2 = ProviderContainer.scoped(
+      //         parent: container,
+      //         overrides: [
+      //           provider2.overrideWith(mockProvider2),
+      //         ],
+      //       );
+      //       containerRank3 = ProviderContainer(parent: containerRank2, overrides: [
+      //         provider2,
+      //       ]);
+      //       otherContainerRank3 = ProviderContainer(parent: containerRank2);
+      //     });
+
+      //     test("1", () {
+      //       expect(container.read(provider2), equals(8));
+      //       expect(containerRank2.read(provider2), equals(22));
+      //       expect(containerRank3.read(provider2), equals(8));
+      //       expect(otherContainerRank3.read(provider2), equals(22));
+
+      //       expect(container.isPresent(provider2), isTrue);
+      //       expect(containerRank2.isPresent(provider2), isTrue);
+      //       expect(containerRank3.isPresent(provider2), isTrue);
+      //       expect(otherContainerRank3.isPresent(provider2), isFalse);
+      //     });
+      //   },
+      // );
+      // group(
+      //   "Part 2",
+      //   () {
+      //     final mockTripleThenSquared =
+      //         ProviderFactory((read, int number) => read(providerFactoryDoubled(number * 3)));
+
+      //     late ProviderContainer container;
+      //     late ProviderContainer containerRank2;
+
+      //     setUp(() {
+      //       container = ProviderContainer();
+      //       containerRank2 = ProviderContainer(
+      //         parent: container,
+      //         overrides: [
+      //           providerTripleThenSquared.overrideWith(mockTripleThenSquared),
+      //         ],
+      //       );
+      //     });
+
+      //     test("1", () {
+      //       expect(container.read(providerTripleThenSquared(3)), equals(81));
+      //       expect(container.isPresent(providerTripleThenSquared(3)), isTrue);
+      //       expect(containerRank2.isPresent(providerTripleThenSquared(3)), isFalse);
+
+      //       expect(containerRank2.read(providerTripleThenSquared(3)), equals(18));
+      //       expect(container.isPresent(providerTripleThenSquared(3)), isTrue);
+      //       expect(containerRank2.isPresent(providerTripleThenSquared(3)), isTrue);
+      //     });
+
+      //     test("Reversed 1", () {
+      //       expect(containerRank2.read(providerTripleThenSquared(3)), equals(18));
+      //       expect(container.isPresent(providerTripleThenSquared(3)), isFalse);
+      //       expect(containerRank2.isPresent(providerTripleThenSquared(3)), isTrue);
+
+      //       expect(container.read(providerTripleThenSquared(3)), equals(81));
+      //       expect(container.isPresent(providerTripleThenSquared(3)), isTrue);
+      //       expect(containerRank2.isPresent(providerTripleThenSquared(3)), isTrue);
+      //     });
     },
   );
+  //   group(
+  //     "Part 3",
+  //     () {
+  //       late ProviderContainer container;
+  //       late ProviderContainer containerRank2;
 
-  group("Dispose", () {
-    test("Simple", () {
-      var calledOnce = false;
-      final disposable = Provider<DisposableCubit>(
-        (_) => DisposableCubit(() => calledOnce = true),
-        dispose: (cubit) => cubit.dispose(),
-      );
+  //       setUp(() {
+  //         container = ProviderContainer.root();
+  //         containerRank2 = ProviderContainer.scoped([], parent: container);
+  //       });
 
-      container.read(disposable);
-      expect(container.isPresent(disposable), isTrue);
-      expect(calledOnce, isFalse);
+  //       test("1", () {
+  //         final s5_1 = container.read(provider5);
+  //         final s5_2 = containerRank2.read(provider5);
+  //         expect(s5_1, equals(5));
+  //         expect(s5_2, equals(5));
+  //         expect(s5_1, equals(s5_2));
 
-      container.dispose();
-      expect(calledOnce, isTrue);
-    });
-  });
+  //         expect(container.isPresent(provider5), isTrue);
+  //         expect(containerRank2.isPresent(provider5), isFalse);
+  //       });
 
-  group("Integration test 1", () {
-    final providerFactorySquared = ProviderFactory((read, int value) {
-      return value * value;
-    });
+  //       test("Reversed 1", () {
+  //         final s5_2 = containerRank2.read(provider5);
+  //         final s5_1 = container.read(provider5);
+  //         expect(s5_1, equals(5));
+  //         expect(s5_2, equals(5));
+  //         expect(s5_1, equals(s5_2));
 
-    final providerTripleThenSquared = ProviderFactory((read, int value) {
-      return read(providerFactorySquared(value * 3));
-    });
+  //         expect(container.isPresent(provider5), isTrue);
+  //         expect(containerRank2.isPresent(provider5), isFalse);
+  //       });
+  //     },
+  //   );
+  // });
 
-    final providerFactoryDoubled = ProviderFactory((read, int value) {
-      return value * 2;
-    });
+  // group("Hierachy test", () {
+  //   ProviderContainer? c1, c2, c3, c4, c5;
 
-    final provider5 = Provider((read) => 5);
-    final provider4 = Provider(
-      (read) {
-        read(provider5);
+  //   setUp(() {
+  //     c1 = ProviderContainer.root();
+  //     c2 = ProviderContainer.scoped(parent: c1);
+  //     c3 = ProviderContainer.scoped(parent: c2);
+  //   });
 
-        return 4;
-      },
-    );
-    final provider2 = Provider(
-      (read) {
-        read(provider4);
-        read(provider5);
+  //   test("Single", () {
+  //     final provider = Provider((_) => 1);
+  //     final override = Provider((_) => 2);
 
-        return read(providerFactoryDoubled(4));
-      },
-      debugName: "provider2",
-    );
-    final provider3 = Provider((read) {
-      read(provider4);
-      read(provider5);
+  //     c4 = ProviderContainer(parent: c3, overrides: [provider.overrideWith(override)]);
+  //     c5 = ProviderContainer(parent: c4);
 
-      return read(providerFactorySquared(3));
-    });
-    final provider1 = Provider(
-      (read) {
-        read(provider2);
-        read(provider3);
+  //     expect(c3!.read(provider), 1);
+  //     expect(c1!.isPresent(provider), isTrue);
+  //     expect([c2, c3, c4, c5].every((c) => !c!.isPresent(provider)), isTrue);
 
-        return 1;
-      },
-    );
+  //     expect(c5!.read(provider), 2);
+  //     expect([c1, c4].every((c) => c!.isPresent(provider)), isTrue);
+  //     expect(
+  //       [
+  //         c2,
+  //         c3,
+  //         c5,
+  //       ].every((c) => !c!.isPresent(provider)),
+  //       isTrue,
+  //     );
+  //   });
 
-    final mockProvider2 = Provider((_) => 22);
+  //   test("Factory", () {
+  //     final providerFactory = ProviderFactory<int, String>((_, value) => value.length);
+  //     final providerFactoryOverride = ProviderFactory<int, String>((_, value) => value.length * 2);
 
-    group(
-      "Part 1",
-      () {
-        late ProviderContainer container;
-        late ProviderContainer containerRank2;
-        late ProviderContainer containerRank3;
-        late ProviderContainer otherContainerRank3;
+  //     c4 = ProviderContainer(
+  //       parent: c3,
+  //       overrides: [providerFactory.overrideWith(providerFactoryOverride)],
+  //     );
+  //     c5 = ProviderContainer(parent: c4);
 
-        setUp(() {
-          container = ProviderContainer();
-          containerRank2 = ProviderContainer(
-            parent: container,
-            overrides: [
-              provider2.overrideWith(mockProvider2),
-            ],
-          );
-          containerRank3 = ProviderContainer(parent: containerRank2, overrides: [
-            provider2,
-          ]);
-          otherContainerRank3 = ProviderContainer(parent: containerRank2);
-        });
+  //     expect(c3!.read(providerFactory("Hello")), 5);
+  //     expect(c1!.isPresent(providerFactory("Hello")), isTrue);
+  //     expect([c2, c3, c4, c5].every((c) => !c!.isPresent(providerFactory("Hello"))), isTrue);
 
-        test("1", () {
-          expect(container.read(provider2), equals(8));
-          expect(containerRank2.read(provider2), equals(22));
-          expect(containerRank3.read(provider2), equals(8));
-          expect(otherContainerRank3.read(provider2), equals(22));
+  //     expect(c5!.read(providerFactory("Hello")), 10);
+  //     expect([c1, c4].every((c) => c!.isPresent(providerFactory("Hello"))), isTrue);
+  //     expect(
+  //       [
+  //         c2,
+  //         c3,
+  //         c5,
+  //       ].every((c) => !c!.isPresent(providerFactory("Hello"))),
+  //       isTrue,
+  //     );
+  //   });
+  // });
 
-          expect(container.isPresent(provider2), isTrue);
-          expect(containerRank2.isPresent(provider2), isTrue);
-          expect(containerRank3.isPresent(provider2), isTrue);
-          expect(otherContainerRank3.isPresent(provider2), isFalse);
-        });
-      },
-    );
-    group(
-      "Part 2",
-      () {
-        final mockTripleThenSquared =
-            ProviderFactory((read, int number) => read(providerFactoryDoubled(number * 3)));
-
-        late ProviderContainer container;
-        late ProviderContainer containerRank2;
-
-        setUp(() {
-          container = ProviderContainer();
-          containerRank2 = ProviderContainer(
-            parent: container,
-            overrides: [
-              providerTripleThenSquared.overrideWith(mockTripleThenSquared),
-            ],
-          );
-        });
-
-        test("1", () {
-          expect(container.read(providerTripleThenSquared(3)), equals(81));
-          expect(container.isPresent(providerTripleThenSquared(3)), isTrue);
-          expect(containerRank2.isPresent(providerTripleThenSquared(3)), isFalse);
-
-          expect(containerRank2.read(providerTripleThenSquared(3)), equals(18));
-          expect(container.isPresent(providerTripleThenSquared(3)), isTrue);
-          expect(containerRank2.isPresent(providerTripleThenSquared(3)), isTrue);
-        });
-
-        test("Reversed 1", () {
-          expect(containerRank2.read(providerTripleThenSquared(3)), equals(18));
-          expect(container.isPresent(providerTripleThenSquared(3)), isFalse);
-          expect(containerRank2.isPresent(providerTripleThenSquared(3)), isTrue);
-
-          expect(container.read(providerTripleThenSquared(3)), equals(81));
-          expect(container.isPresent(providerTripleThenSquared(3)), isTrue);
-          expect(containerRank2.isPresent(providerTripleThenSquared(3)), isTrue);
-        });
-      },
-    );
-    group(
-      "Part 3",
-      () {
-        late ProviderContainer container;
-        late ProviderContainer containerRank2;
-
-        setUp(() {
-          container = ProviderContainer();
-          containerRank2 = ProviderContainer(parent: container);
-        });
-
-        test("1", () {
-          final s5_1 = container.read(provider5);
-          final s5_2 = containerRank2.read(provider5);
-          expect(s5_1, equals(5));
-          expect(s5_2, equals(5));
-          expect(s5_1, equals(s5_2));
-
-          expect(container.isPresent(provider5), isTrue);
-          expect(containerRank2.isPresent(provider5), isFalse);
-        });
-
-        test("Reversed 1", () {
-          final s5_2 = containerRank2.read(provider5);
-          final s5_1 = container.read(provider5);
-          expect(s5_1, equals(5));
-          expect(s5_2, equals(5));
-          expect(s5_1, equals(s5_2));
-
-          expect(container.isPresent(provider5), isTrue);
-          expect(containerRank2.isPresent(provider5), isFalse);
-        });
-      },
-    );
-  });
-
-  group("Hierachy test", () {
-    ProviderContainer? c1, c2, c3, c4, c5;
-
-    setUp(() {
-      c1 = ProviderContainer();
-      c2 = ProviderContainer(parent: c1);
-      c3 = ProviderContainer(parent: c2);
-    });
-
-    test("Single", () {
-      final provider = Provider((_) => 1);
-      final override = Provider((_) => 2);
-
-      c4 = ProviderContainer(parent: c3, overrides: [provider.overrideWith(override)]);
-      c5 = ProviderContainer(parent: c4);
-
-      expect(c3!.read(provider), 1);
-      expect(c1!.isPresent(provider), isTrue);
-      expect([c2, c3, c4, c5].every((c) => !c!.isPresent(provider)), isTrue);
-
-      expect(c5!.read(provider), 2);
-      expect([c1, c4].every((c) => c!.isPresent(provider)), isTrue);
-      expect(
-        [
-          c2,
-          c3,
-          c5,
-        ].every((c) => !c!.isPresent(provider)),
-        isTrue,
-      );
-    });
-
-    test("Factory", () {
-      final providerFactory = ProviderFactory<int, String>((_, value) => value.length);
-      final providerFactoryOverride = ProviderFactory<int, String>((_, value) => value.length * 2);
-
-      c4 = ProviderContainer(
-        parent: c3,
-        overrides: [providerFactory.overrideWith(providerFactoryOverride)],
-      );
-      c5 = ProviderContainer(parent: c4);
-
-      expect(c3!.read(providerFactory("Hello")), 5);
-      expect(c1!.isPresent(providerFactory("Hello")), isTrue);
-      expect([c2, c3, c4, c5].every((c) => !c!.isPresent(providerFactory("Hello"))), isTrue);
-
-      expect(c5!.read(providerFactory("Hello")), 10);
-      expect([c1, c4].every((c) => c!.isPresent(providerFactory("Hello"))), isTrue);
-      expect(
-        [
-          c2,
-          c3,
-          c5,
-        ].every((c) => !c!.isPresent(providerFactory("Hello"))),
-        isTrue,
-      );
-    });
-  });
-  
   test("Scoping", () {
     final provider1 = Provider((_) => Counter(0));
     final provider2 = Provider((read) => Counter(read(provider1).count + 1));
     final provider3 = Provider((read) => Counter(read(provider2).count + 3));
 
-    final container = ProviderContainer();
-    final containerChild = ProviderContainer(
+    final container = ProviderContainer.root();
+    final containerChild = ProviderContainer.scoped(
+      [provider2],
       parent: container,
-      overrides: [provider2],
     );
-    final containerChild2 = ProviderContainer(parent: containerChild);
+    final containerChild2 = ProviderContainer.scoped([], parent: containerChild);
+    final containerChild3 = ProviderContainer.scoped([provider2], parent: containerChild2);
 
     // now provider3 also scoped inside containerChild
     final instance3 = containerChild2.read(provider3);
@@ -455,8 +465,13 @@ void main() {
     expect(containerChild.isPresent(provider2), isTrue);
     expect(containerChild2.isPresent(provider3), isFalse);
     expect(containerChild2.isPresent(provider2), isFalse);
+    expect(containerChild3.isPresent(provider2), isFalse);
+    expect(containerChild3.isPresent(provider2), isFalse);
     expect(container.isPresent(provider3), isTrue);
     expect(container.isPresent(provider2), isTrue);
+
+    containerChild3.read(provider3);
+    expect(containerChild3.isPresent(provider3), isTrue);
 
     final instance1 = containerChild.read(provider1);
     final rootInstance1 = container.read(provider1);

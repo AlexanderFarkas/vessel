@@ -1,4 +1,4 @@
-import 'package:honeycomb/honeycomb.dart';
+import 'package:riverpod/riverpod.dart';
 
 const int _kNumWarmUp = 1000;
 

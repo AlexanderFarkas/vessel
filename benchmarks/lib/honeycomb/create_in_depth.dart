@@ -18,22 +18,22 @@ void main() {
 
   watch.reset();
   _benchmark(
-    depth: 5,
-    watch: watch,
-    printer: printer,
-  );
-  _benchmark(
-    depth: 20,
-    watch: watch,
-    printer: printer,
-  );
-  _benchmark(
-    depth: 40,
+    depth: 50,
     watch: watch,
     printer: printer,
   );
   _benchmark(
     depth: 100,
+    watch: watch,
+    printer: printer,
+  );
+  _benchmark(
+    depth: 200,
+    watch: watch,
+    printer: printer,
+  );
+  _benchmark(
+    depth: 500,
     watch: watch,
     printer: printer,
   );
@@ -49,7 +49,7 @@ void _benchmark({
   const scale = 1000.0 / _kNumIterations;
 
   for (int i = 0; i < _kNumIterations; i++) {
-    final container = ProviderContainer();
+    final container = ProviderContainer.root();
     final providers = [];
     for (int i = 0; i < depth; i++) {
       if (i == 0) {
@@ -66,7 +66,7 @@ void _benchmark({
   final elapsed = watch.elapsedMicroseconds;
 
   printer.addResult(
-    description: 'create_indepth$depth',
+    description: 'create provider with transitive dependency depth == $depth',
     value: elapsed * scale,
     unit: 'ns per iteration',
     name: 'create_indepth$depth',

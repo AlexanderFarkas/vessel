@@ -20,14 +20,14 @@ void main() {
 
   // Warm up lap
   for (var i = 0; i < _kNumWarmUp; i += 1) {
-    final container = ProviderContainer();
+    final container = ProviderContainer.root();
     final providers = List.generate(500, (index) => Provider((ref) => index));
     providers.forEach(container.read);
   }
 
   watch.reset();
   for (var i = 0; i < _kNumIterations; i += 1) {
-    final container = ProviderContainer();
+    final container = ProviderContainer.root();
     pushProviders(10, container);
     watch.start();
     container.read(provider);
@@ -44,7 +44,7 @@ void main() {
 
   watch.reset();
   for (var i = 0; i < _kNumIterations; i += 1) {
-    final container = ProviderContainer();
+    final container = ProviderContainer.root();
     pushProviders(100, container);
     watch.start();
     container.read(provider);
@@ -61,7 +61,7 @@ void main() {
 
   watch.reset();
   for (var i = 0; i < _kNumIterations; i += 1) {
-    final container = ProviderContainer();
+    final container = ProviderContainer.root();
     pushProviders(500, container);
     watch.start();
     container.read(provider);
@@ -78,7 +78,7 @@ void main() {
 
   watch.reset();
   for (var i = 0; i < _kNumIterations; i += 1) {
-    final container = ProviderContainer();
+    final container = ProviderContainer.root();
     pushProviders(2000, container);
     watch.start();
     container.read(provider);

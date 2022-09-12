@@ -1,149 +1,16 @@
-import 'dart:collection';
-
-import 'package:meta/meta.dart';
-
-ProviderBase? _circularDependencySentinel;
-
-class ProviderContainer {
-  final ProviderContainer? parent;
-  final int depth;
-
-  final Map<ProviderBase, ProviderWithState> _providables = HashMap();
-  final Map<ProviderFactory, FactoryOverride> _factoryOverrides = HashMap();
-  final Map<ProviderBase, ProviderOverride> _providerOverrides = HashMap();
-
-  late final rootContainer = () {
-    var root = this;
-    while(root.depth != 1) {
-      root = root.parent!;
-    }
-    
-    return root;
-  }();
-
-  ProviderContainer({
-    this.parent,
-    List<Override> overrides = const [],
-  }) : depth = (parent?.depth ?? 0) + 1 {
-    for (final override in overrides) {
-      _setOverride(override);
-    }
-  }
-
-  T read<T>(ProviderBase<T> provider) {
-    return _readWithState(provider, this).state;
-  }
-
-  ProviderWithState _readWithState<T>(ProviderBase<T> provider, ProviderContainer source) {
-    final identifier = provider;
-
-    if (_providables.containsKey(identifier)) {
-      return _providables[identifier]!;
-    }
-
-    ProviderWithState<T> create(ProviderBase<T> provider, {required bool isOverride}) {
-      if (_circularDependencySentinel == provider) {
-        throw CircularDependencyException("There is a circular dependency on $provider");
-      }
-
-      _circularDependencySentinel ??= provider;
-
-      try {
-        final dependencies = HashSet<ProviderWithState>();
-        ProviderContainer deepestContainer = rootContainer;
-
-        final created = provider.create(<K>(ProviderBase<K> provider) {
-          final providerWithState = source._readWithState(provider, source);
-          
-          void setIfDeeper(ProviderContainer owner) {
-            if (owner.depth > deepestContainer.depth) {
-              deepestContainer = owner;
-            }
-          }
-          setIfDeeper(providerWithState.deepestDependencyContainer);
-          setIfDeeper(providerWithState.owner);
-
-          return providerWithState.state;
-        });
-
-        return ProviderWithState<T>(
-          provider: provider,
-          state: created,
-          deepestDependencyContainer: deepestContainer,
-          owner: this,
-          isOverride: isOverride,
-        );
-      } finally {
-        _circularDependencySentinel = null;
-      }
-    }
-
-    final overriddenProvider = _findOverride(provider);
-    if (overriddenProvider != null) {
-      return _set(identifier, create(overriddenProvider, isOverride: true));
-    }
-
-    if (parent != null) {
-      return parent!._readWithState(provider, source);
-    } else {
-      final newProvider = create(
-        provider,
-        isOverride: false,
-      );
-
-      return newProvider.deepestDependencyContainer._set(identifier, newProvider);
-    }
-  }
-
-  void dispose() {
-    for (final providerWithState in _providables.values) {
-      providerWithState.dispose();
-    }
-  }
-
-  @visibleForTesting
-  bool isPresent(ProviderBase provider) {
-    return _providables.containsKey(provider);
-  }
-
-  ProviderBase<T>? _findOverride<T>(ProviderBase<T> provider) {
-    ProviderBase<dynamic>? overridden = provider is FactoryProvider<T, dynamic>
-        ? _factoryOverrides[provider.factory]?.getOverride(provider)
-        : _providerOverrides[provider]?._override;
-
-    return overridden as ProviderBase<T>?;
-  }
-
-  T _setOverride<T extends Override>(T override) {
-    if (override is ProviderOverride) {
-      return _providerOverrides[override._origin] = override;
-    } else if (override is FactoryOverride) {
-      return _factoryOverrides[override._origin] = override;
-    } else {
-      throw UnimplementedError("Not implemented override: $override");
-    }
-  }
-
-  ProviderWithState<T> _set<T>(ProviderBase<T> key, ProviderWithState<T> value) {
-    return _providables[key] = value;
-  }
-}
+part of '../honeycomb.dart';
 
 class ProviderWithState<TState> {
   final ProviderBase<TState> provider;
   final TState state;
-  // final Set<ProviderWithState> dependencies;
-  final ProviderContainer deepestDependencyContainer;
+  final Set<ProviderBase> dependencies;
   final ProviderContainer owner;
-  final bool isOverride;
 
   ProviderWithState({
     required this.provider,
     required this.state,
-    // required this.dependencies,
+    required this.dependencies,
     required this.owner,
-    required this.isOverride,
-    required this.deepestDependencyContainer, 
   });
 
   @override
@@ -171,7 +38,7 @@ class ProviderOverride<T> extends Override {
 
 typedef FactoryOverrideFn<TState, TArg> = ProviderBase<TState> Function(TArg);
 
-abstract class FactoryOverride<TState, TArg> extends Override {
+class FactoryOverride<TState, TArg> extends Override {
   final ProviderFactory<TState, TArg> _origin;
   final FactoryOverrideFn<TState, TArg> _override;
 
@@ -181,16 +48,6 @@ abstract class FactoryOverride<TState, TArg> extends Override {
   })  : _origin = origin,
         _override = override;
 
-  ProviderBase<TState> getOverride(FactoryProvider<TState, TArg> provider);
-}
-
-class _FactoryOverride<TState, TArg> extends FactoryOverride<TState, TArg>
-    with FactoryOverrideMixin<TState, TArg> {
-  _FactoryOverride({required super.origin, required super.override});
-}
-
-mixin FactoryOverrideMixin<TState, TArg> on FactoryOverride<TState, TArg> {
-  @override
   ProviderBase<TState> getOverride(FactoryProvider<TState, TArg> provider) {
     return _override(provider.param);
   }
@@ -201,20 +58,16 @@ typedef ReadProvider = T Function<T>(ProviderBase<T> provider);
 typedef ProviderCreate<T> = T Function(ReadProvider read);
 typedef ProviderFactoryCreate<T, K> = T Function(ReadProvider read, K param);
 
+abstract class MaybeScoped {}
+
 abstract class ProviderOrFactory<T> {
   final Dispose<T>? dispose;
   ProviderOrFactory({required this.dispose});
 }
 
-abstract class ProviderBase<T> extends ProviderOrFactory<T> implements ProviderOverride<T> {
+abstract class ProviderBase<T> extends ProviderOrFactory<T> {
   final ProviderCreate<T> create;
   final String? debugName;
-
-  @override
-  ProviderBase<T> get _origin => this;
-
-  @override
-  ProviderBase<T> get _override => this;
 
   ProviderBase(
     this.create, {
@@ -225,7 +78,7 @@ abstract class ProviderBase<T> extends ProviderOrFactory<T> implements ProviderO
         );
 }
 
-class Provider<T> extends ProviderBase<T> with _DebugMixin {
+class Provider<T> extends ProviderBase<T> with _DebugMixin implements MaybeScoped {
   Provider(
     ProviderCreate<T> create, {
     Dispose<T>? dispose,
@@ -249,12 +102,7 @@ class Provider<T> extends ProviderBase<T> with _DebugMixin {
   }
 }
 
-abstract class ProviderFactoryBase<TState, TArg> extends ProviderOrFactory<TState>
-    implements FactoryOverride<TState, TArg> {
-  ProviderFactoryBase({required super.dispose});
-}
-
-class ProviderFactory<T, K> extends ProviderFactoryBase<T, K> with FactoryOverrideMixin<T, K> {
+class ProviderFactory<T, K> extends ProviderOrFactory<T> implements MaybeScoped {
   final ProviderFactoryCreate<T, K> create;
   final String? debugName;
   ProviderFactory(
@@ -262,12 +110,6 @@ class ProviderFactory<T, K> extends ProviderFactoryBase<T, K> with FactoryOverri
     super.dispose,
     this.debugName,
   });
-
-  @override
-  ProviderFactory<T, K> get _origin => this;
-
-  @override
-  FactoryOverrideFn<T, K> get _override => call;
 
   ProviderBase<T> call(K param) {
     return FactoryProvider<T, K>(
@@ -280,7 +122,7 @@ class ProviderFactory<T, K> extends ProviderFactoryBase<T, K> with FactoryOverri
   }
 
   FactoryOverride<T, K> overrideWith(ProviderBase<T> Function(K) providerBuilder) {
-    return _FactoryOverride(
+    return FactoryOverride(
       origin: this,
       override: providerBuilder,
     );

@@ -293,12 +293,12 @@ read50: 33.2 ns per iteration
 read500: 33.1 ns per iteration
 
 ================ RESULTS ================
-:::JSON::: {"create_indepth5":509.36,"create_indepth20":3149.37,"create_indepth40":8725.4,"create_indepth100":24210.89}
+:::JSON::: {"create_indepth50":7499.07,"create_indepth100":22943.19,"create_indepth200":57083.61,"create_indepth500":141255.9}
 ================ FORMATTED ==============
-create_indepth5: 509.4 ns per iteration
-create_indepth20: 3149.4 ns per iteration
-create_indepth40: 8725.4 ns per iteration
-create_indepth100: 24210.9 ns per iteration
+create_indepth50: 7499.1 ns per iteration
+create_indepth100: 22943.2 ns per iteration
+create_indepth200: 57083.6 ns per iteration
+create_indepth500: 141255.9 ns per iteration
 ```
 <br>
 
@@ -322,12 +322,12 @@ read50: 35.9 ns per iteration
 read500: 35.3 ns per iteration
 
 ================ RESULTS ================
-:::JSON::: {"create_indepth5":897.5600000000001,"create_indepth20":4611.7,"create_indepth40":12094.89,"create_indepth100":31974.62}
+:::JSON::: {"create_indepth50":8945.16,"create_indepth100":28855.7,"create_indepth200":69141.66,"create_indepth500":160974.34}
 ================ FORMATTED ==============
-create_indepth5: 897.6 ns per iteration
-create_indepth20: 4611.7 ns per iteration
-create_indepth40: 12094.9 ns per iteration
-create_indepth100: 31974.6 ns per iteration
+create provider with transitive dependency depth == 50: 8945.2 ns per iteration
+create provider with transitive dependency depth == 100: 28855.7 ns per iteration
+create provider with transitive dependency depth == 200: 69141.7 ns per iteration
+create provider with transitive dependency depth == 500: 160974.3 ns per iteration
 ```
 
 ## Is it production ready?
