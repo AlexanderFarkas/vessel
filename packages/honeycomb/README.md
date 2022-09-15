@@ -277,35 +277,28 @@ I've run all benchmarks with `dart run`
 **honeycomb**:
 ```
 ================ RESULTS ================
-:::JSON::: {"create10_iteration":94.21000000000001,"create100_iteration":96.82000000000001,"create500_iteration":96.78,"create2000_iteration":97.65}
+:::JSON::: {"create10_iteration":143.89000000000001,"create100_iteration":149.57,"create500_iteration":149.14000000000001,"create2000_iteration":148.97}
 ================ FORMATTED ==============
-create10: 94.2 ns per iteration
-create100: 96.8 ns per iteration
-create500: 96.8 ns per iteration
-create2000: 97.7 ns per iteration
+create10: 143.9 ns per iteration
+create100: 149.6 ns per iteration
+create500: 149.1 ns per iteration
+create2000: 149.0 ns per iteration
 
 ================ RESULTS ================
-:::JSON::: {"read1_iteration":37.550000000000004,"read10_iteration":33.5,"read50_iteration":33.22,"read500_iteration":33.12}
+:::JSON::: {"read1_iteration":36.42,"read10_iteration":29.240000000000002,"read50_iteration":29.060000000000002,"read500_iteration":29.48}
 ================ FORMATTED ==============
-read1: 37.6 ns per iteration
-read10: 33.5 ns per iteration
-read50: 33.2 ns per iteration
-read500: 33.1 ns per iteration
+read1: 36.4 ns per iteration
+read10: 29.2 ns per iteration
+read50: 29.1 ns per iteration
+read500: 29.5 ns per iteration
 
 ================ RESULTS ================
-:::JSON::: {"create_indepth50":7499.07,"create_indepth100":22943.19,"create_indepth200":57083.61,"create_indepth500":141255.9}
+:::JSON::: {"create_indepth50":47514.450000000004,"create_indepth100":140708.12,"create_indepth200":326923.46,"create_indepth500":784230.06}
 ================ FORMATTED ==============
-create_indepth50: 7499.1 ns per iteration
-create_indepth100: 22943.2 ns per iteration
-create_indepth200: 57083.6 ns per iteration
-create_indepth500: 141255.9 ns per iteration
-================ RESULTS ================
-:::JSON::: {"create_indepth50":33761.090000000004,"create_indepth100":100017.61,"create_indepth200":233645.57,"create_indepth500":566134.46}
-================ FORMATTED ==============
-create provider with transitive dependency depth == 50: 33761.1 ns per iteration
-create provider with transitive dependency depth == 100: 100017.6 ns per iteration
-create provider with transitive dependency depth == 200: 233645.6 ns per iteration
-create provider with transitive dependency depth == 500: 566134.5 ns per iteration
+create provider with transitive dependency depth == 50: 47514.5 ns per iteration
+create provider with transitive dependency depth == 100: 140708.1 ns per iteration
+create provider with transitive dependency depth == 200: 326923.5 ns per iteration
+create provider with transitive dependency depth == 500: 784230.1 ns per iteration
 ```
 <br>
 
@@ -329,12 +322,12 @@ read50: 35.9 ns per iteration
 read500: 35.3 ns per iteration
 
 ================ RESULTS ================
-:::JSON::: {"create_indepth50":8945.16,"create_indepth100":28855.7,"create_indepth200":69141.66,"create_indepth500":160974.34}
+:::JSON::: {"create_indepth50":14489.41,"create_indepth100":43428.58,"create_indepth200":101261.48,"create_indepth500":243073.57}
 ================ FORMATTED ==============
-create provider with transitive dependency depth == 50: 8945.2 ns per iteration
-create provider with transitive dependency depth == 100: 28855.7 ns per iteration
-create provider with transitive dependency depth == 200: 69141.7 ns per iteration
-create provider with transitive dependency depth == 500: 160974.3 ns per iteration
+create provider with transitive dependency depth == 50: 14489.4 ns per iteration
+create provider with transitive dependency depth == 100: 43428.6 ns per iteration
+create provider with transitive dependency depth == 200: 101261.5 ns per iteration
+create provider with transitive dependency depth == 500: 243073.6 ns per iteration
 ```
 
 ## Is it production ready?
