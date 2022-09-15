@@ -49,7 +49,9 @@ void _benchmark({
   const scale = 1000.0 / _kNumIterations;
 
   for (int i = 0; i < _kNumIterations; i++) {
-    final container = ProviderContainer.root();
+    final _container = ProviderContainer();
+    final _container2 = ProviderContainer.scoped([], parent: _container);
+    final container = ProviderContainer.scoped([], parent: _container2);
     final providers = [];
     for (int i = 0; i < depth; i++) {
       if (i == 0) {

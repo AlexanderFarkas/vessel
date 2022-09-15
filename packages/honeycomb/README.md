@@ -299,6 +299,13 @@ create_indepth50: 7499.1 ns per iteration
 create_indepth100: 22943.2 ns per iteration
 create_indepth200: 57083.6 ns per iteration
 create_indepth500: 141255.9 ns per iteration
+================ RESULTS ================
+:::JSON::: {"create_indepth50":33761.090000000004,"create_indepth100":100017.61,"create_indepth200":233645.57,"create_indepth500":566134.46}
+================ FORMATTED ==============
+create provider with transitive dependency depth == 50: 33761.1 ns per iteration
+create provider with transitive dependency depth == 100: 100017.6 ns per iteration
+create provider with transitive dependency depth == 200: 233645.6 ns per iteration
+create provider with transitive dependency depth == 500: 566134.5 ns per iteration
 ```
 <br>
 

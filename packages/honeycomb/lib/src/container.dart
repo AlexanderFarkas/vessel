@@ -26,8 +26,8 @@ abstract class ProviderContainer {
   }
 
   /// Implementation
-  Map<ProviderFactory, FactoryOverride> get _factoryOverrides;
-  Map<ProviderBase, ProviderOverride> get _providerOverrides;
+  HashMap<ProviderFactory, FactoryOverride> get _factoryOverrides;
+  HashMap<ProviderBase, ProviderOverride> get _providerOverrides;
   Map<ProviderBase, dynamic> get _providables;
   _RootContainer get _rootContainer;
 
@@ -36,26 +36,24 @@ abstract class ProviderContainer {
   _CreateResult<T> _create<T>(ProviderBase<T> provider) => _circularDependencyCheck(
         lock: provider,
         () {
-          final Set<MaybeScoped> dependencies = {};
+          final directDependencies = HashSet<MaybeScoped>();
 
           final actualProvider = _findOverride(provider);
+
+          // Пройти по всем зависимостям - и только слайсить их??
           final value = actualProvider.create(<T>(ProviderBase<T> dependency) {
             if (dependency is FactoryProvider<T, dynamic>) {
-              dependencies.add(dependency.factory);
+              directDependencies.add(dependency.factory);
             } else if (dependency is Provider<T>) {
-              dependencies.add(dependency);
+              directDependencies.add(dependency);
             }
-
-            final value = read(_findOverride(dependency));
-            dependencies.addAll(_getDependencies(dependency)!);
-
-            return value;
+            return read(dependency);
           });
 
           final result = _CreateResult(
             value: value,
             origin: provider,
-            dependencies: dependencies,
+            dependencies: directDependencies,
             actualProvider: actualProvider,
           );
 
@@ -106,12 +104,12 @@ abstract class ProviderContainer {
       key = origin;
     }
 
-    _rootContainer.dependencies[key] ??= result.dependencies;
+    _rootContainer.directDependencies[key] ??= result.dependencies;
   }
 
-  Set<MaybeScoped>? _getDependencies<T>(ProviderBase<T> provider) {
+  HashSet<MaybeScoped>? _getDirectDependencies<T>(ProviderBase<T> provider) {
     final key = _getDependencyKey(provider);
-    return _rootContainer.dependencies[key];
+    return _rootContainer.directDependencies[key];
   }
 
   MaybeScoped _getDependencyKey<T>(ProviderBase<T> origin) {
@@ -129,6 +127,11 @@ abstract class ProviderContainer {
     return _providables.containsKey(provider);
   }
 
+  @visibleForTesting
+  int providablesLength() {
+    return _providables.length;
+  }
+
   bool isScoped<T>(ProviderBase<T> provider);
 }
 
@@ -136,7 +139,7 @@ class _CreateResult<T> {
   final T value;
   final ProviderBase<T> origin;
   final ProviderBase<T> actualProvider;
-  final Set<MaybeScoped> dependencies;
+  final HashSet<MaybeScoped> dependencies;
 
   _CreateResult({
     required this.value,
@@ -148,18 +151,18 @@ class _CreateResult<T> {
 
 class _RootContainer extends ProviderContainer {
   @override
-  final Map<ProviderBase, dynamic> _providables = {};
-  final Map<MaybeScoped, Set<MaybeScoped>> dependencies = {};
+  final _providables = <ProviderBase, dynamic>{};
+  final HashMap<MaybeScoped, HashSet<MaybeScoped>> directDependencies = HashMap();
 
   @override
-  late final Map<ProviderFactory, FactoryOverride> _factoryOverrides;
+  late final HashMap<ProviderFactory, FactoryOverride> _factoryOverrides;
 
   @override
-  late final Map<ProviderBase, ProviderOverride> _providerOverrides;
+  late final HashMap<ProviderBase, ProviderOverride> _providerOverrides;
 
   _RootContainer({List<Override> overrides = const []}) : super._() {
-    final Map<ProviderFactory, FactoryOverride> factoryOverrides = {};
-    final Map<ProviderBase, ProviderOverride> providerOverrides = {};
+    final HashMap<ProviderFactory, FactoryOverride> factoryOverrides = HashMap();
+    final HashMap<ProviderBase, ProviderOverride> providerOverrides = HashMap();
 
     for (final override in overrides) {
       if (override is ProviderOverride) {
@@ -175,7 +178,7 @@ class _RootContainer extends ProviderContainer {
   }
 
   @override
-  _RootContainer get _rootContainer => this;
+  late final _RootContainer _rootContainer = this;
 
   @override
   T read<T>(ProviderBase<T> provider) {
@@ -195,15 +198,15 @@ class _RootContainer extends ProviderContainer {
 
 class _ScopedContainer extends ProviderContainer {
   final ProviderContainer parent;
-  final Set<MaybeScoped> scoped;
+  final HashSet<MaybeScoped> scoped;
 
   @override
-  final Map<ProviderBase, dynamic> _providables = {};
+  final _providables = <ProviderBase, dynamic>{};
 
   _ScopedContainer(
     List<MaybeScoped> scoped, {
     required this.parent,
-  })  : scoped = scoped.toSet(),
+  })  : scoped = HashSet.from(scoped),
         // assert(
         //   scoped.isNotEmpty,
         //   "There is no practical usage for scoped container with empty dependencies",
@@ -211,10 +214,10 @@ class _ScopedContainer extends ProviderContainer {
         super._();
 
   @override
-  Map<ProviderFactory, FactoryOverride> get _factoryOverrides => parent._factoryOverrides;
+  late final HashMap<ProviderFactory, FactoryOverride> _factoryOverrides = parent._factoryOverrides;
 
   @override
-  Map<ProviderBase, ProviderOverride> get _providerOverrides => parent._providerOverrides;
+  late final HashMap<ProviderBase, ProviderOverride> _providerOverrides = parent._providerOverrides;
 
   @override
   T read<T>(ProviderBase<T> provider) {
@@ -222,7 +225,7 @@ class _ScopedContainer extends ProviderContainer {
       return _providables[provider];
     }
 
-    final dependencies = _getDependencies(provider);
+    final dependencies = _getDirectDependencies(provider);
     if (dependencies == null) {
       final result = _create(provider);
 
@@ -243,12 +246,15 @@ class _ScopedContainer extends ProviderContainer {
   @override
   _RootContainer get _rootContainer => parent._rootContainer;
 
+  final cachedIsScoped = {};
+
   @override
   bool isScoped<T>(ProviderBase<T> provider) {
-    if (scoped.contains(_getDependencyKey(provider))) {
-      return true;
-    }
+    return _isScoped(_getDependencyKey(provider));
+  }
 
-    return scoped.any(_getDependencies(provider)!.contains);
+  bool _isScoped<T>(MaybeScoped dependency) {
+    return cachedIsScoped[dependency] ??= scoped.contains(dependency) ||
+        _rootContainer.directDependencies[dependency]!.any(_isScoped);
   }
 }

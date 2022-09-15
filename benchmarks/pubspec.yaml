@@ -8,7 +8,7 @@ environment:
 
 dependencies:
   honeycomb:
-  riverpod: ^1.0.3
+  riverpod: ^2.0.0-dev.9
 
 dependency_overrides:
   honeycomb:

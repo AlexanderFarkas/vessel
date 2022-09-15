@@ -38,7 +38,6 @@ void main() {
     printer: printer,
   );
 
-
   printer.printToStdout();
 }
 
@@ -50,14 +49,22 @@ void _benchmark({
   const scale = 1000.0 / _kNumIterations;
 
   for (int i = 0; i < _kNumIterations; i++) {
-    final container = ProviderContainer();
+    final _container = ProviderContainer();
+    final _container2 = ProviderContainer(parent: _container);
+    final container = ProviderContainer(parent: _container2);
+
     final providers = [];
     for (int i = 0; i < depth; i++) {
       if (i == 0) {
         providers.add(Provider((_) => 1));
       } else {
         final prevProvider = providers[i - 1];
-        providers.add(Provider((ref) => ref.read(prevProvider) + 1, dependencies: [prevProvider]));
+        providers.add(
+          Provider(
+            (ref) => ref.read(prevProvider) + 1,
+            dependencies: [prevProvider],
+          ),
+        );
       }
     }
     watch.start();
