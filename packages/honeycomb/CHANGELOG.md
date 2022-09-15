@@ -1,3 +1,11 @@
+## 0.2.0
+
+> Note: This release has breaking changes.
+
+ - **FEAT**: linear (O(n)) dependency resolving.
+ - **DOCS**: updated benchmark results.
+ - **BREAKING** **FIX**: prohibited nested overriding.
+
 ## 0.1.1+2
 
  - **DOCS**: clarification.
