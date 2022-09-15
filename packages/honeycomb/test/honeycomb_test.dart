@@ -192,40 +192,103 @@ void main() {
     expect(identical(instance1, rootInstance1), isTrue); // true
   });
 
-  test("https://github.com/rrousselGit/riverpod/issues/1629", () {
-    final provider1 = Provider((_) => Counter(1));
-    final provider2 = Provider((read) => Counter(read(provider1).count + 1));
-    final provider3 = Provider((read) => Counter(read(provider2).count + 1));
+  group(
+    "https://github.com/rrousselGit/riverpod/issues/1629",
+    () {
+      group("single values", () {
+        test("original comment", () {
+          final provider1 = Provider((_) => Counter(1));
+          final provider2 = Provider((read) => Counter(read(provider1).count + 1));
+          final provider3 = Provider((read) => Counter(read(provider2).count + 1));
 
-    final root = ProviderContainer();
-    final child1 = ProviderContainer.scoped([], parent: root);
-    final child2 = ProviderContainer.scoped([provider2, provider3], parent: child1);
-    final child3 = ProviderContainer.scoped([provider1], parent: child2);
+          final root = ProviderContainer();
+          final child1 = ProviderContainer.scoped([], parent: root);
+          final child2 = ProviderContainer.scoped([provider2, provider3], parent: child1);
+          final child3 = ProviderContainer.scoped([provider1], parent: child2);
 
-    child3.read(provider3);
-    expect(child3.providablesLength(), equals(3));
-    expect(child2.providablesLength(), equals(0));
-    expect(child1.providablesLength(), equals(0));
-    expect(root.providablesLength(), equals(0));
-  });
+          child3.read(provider3);
+          expect(child3.providablesLength(), equals(3));
+          expect(child2.providablesLength(), equals(0));
+          expect(child1.providablesLength(), equals(0));
+          expect(root.providablesLength(), equals(0));
+        });
 
-  test("https://github.com/rrousselGit/riverpod/issues/1629", () {
-    final provider1 = Provider((_) => Counter(1));
-    final provider2 = Provider((read) => Counter(read(provider1).count + 1));
-    final provider3 = Provider((read) => Counter(read(provider2).count + 1));
+        test("tweaked", () {
+          final provider1 = Provider((_) => Counter(1));
+          final provider2 = Provider((read) => Counter(read(provider1).count + 1));
+          final provider3 = Provider((read) => Counter(read(provider2).count + 1));
 
-    final root = ProviderContainer();
-    final child1 = ProviderContainer.scoped([], parent: root);
-    final child2 = ProviderContainer.scoped([provider2], parent: child1);
-    final child3 = ProviderContainer.scoped([provider1], parent: child2);
+          final root = ProviderContainer();
+          final child1 = ProviderContainer.scoped([], parent: root);
+          final child2 = ProviderContainer.scoped([provider2], parent: child1);
+          final child3 = ProviderContainer.scoped([provider1], parent: child2);
 
-    child3.read(provider3);
-    child3.read(provider2);
-    expect(child3.providablesLength(), equals(3));
-    expect(child2.providablesLength(), equals(0));
-    expect(child1.providablesLength(), equals(0));
-    expect(root.providablesLength(), equals(0));
-  });
+          child3.read(provider3);
+          child3.read(provider2);
+          expect(child3.providablesLength(), equals(3));
+          expect(child2.providablesLength(), equals(0));
+          expect(child1.providablesLength(), equals(0));
+          expect(root.providablesLength(), equals(0));
+        });
+      });
+      group("factory values", () {
+        final provider1 = ProviderFactory((_, int count) => Counter(1));
+        final provider2 =
+            ProviderFactory((read, int count) => Counter(read(provider1(count)).count + 1));
+        final provider3 =
+            ProviderFactory((read, int count) => Counter(read(provider2(count)).count + 1));
+
+        test("original comment", () {
+          final root = ProviderContainer();
+          final child1 = ProviderContainer.scoped([], parent: root);
+          final child2 = ProviderContainer.scoped([provider2, provider3], parent: child1);
+          final child3 = ProviderContainer.scoped([provider1], parent: child2);
+
+          child3.read(provider3(3));
+          expect(child3.providablesLength(), equals(3));
+          expect(child2.providablesLength(), equals(0));
+          expect(child1.providablesLength(), equals(0));
+          expect(root.providablesLength(), equals(0));
+
+          child2.read(provider3(2));
+          expect(child3.providablesLength(), equals(3));
+          expect(child2.providablesLength(), equals(2));
+          expect(child1.providablesLength(), equals(0));
+          expect(root.providablesLength(), equals(1));
+        });
+
+        test("tweaked", () {
+          final root = ProviderContainer();
+          final child1 = ProviderContainer.scoped([], parent: root);
+          final child2 = ProviderContainer.scoped([provider2], parent: child1);
+          final child3 = ProviderContainer.scoped([provider1], parent: child2);
+
+          child3.read(provider3(3));
+          expect(child3.providablesLength(), equals(3));
+          expect(child2.providablesLength(), equals(0));
+          expect(child1.providablesLength(), equals(0));
+          expect(root.providablesLength(), equals(0));
+
+          child2.read(provider3(2));
+          expect(child3.providablesLength(), equals(3));
+          expect(child2.providablesLength(), equals(2));
+          expect(child1.providablesLength(), equals(0));
+          expect(root.providablesLength(), equals(1));
+
+          child2.read(provider2(2));
+          child3.read(provider3(3));
+          child3.read(provider1(3));
+          child1.read(provider1(2));
+          child2.read(provider1(2));
+          expect(child3.providablesLength(), equals(3));
+          expect(child2.providablesLength(), equals(2));
+          expect(child1.providablesLength(), equals(0));
+          expect(root.providablesLength(), equals(1));
+
+        });
+      });
+    },
+  );
 }
 
 class Counter {
