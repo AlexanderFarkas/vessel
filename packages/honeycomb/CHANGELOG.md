@@ -1,3 +1,7 @@
+## 0.2.0+1
+
+ - **DOCS**: updated documentation to align with new scoping.
+
 ## 0.2.0
 
 > Note: This release has breaking changes.
