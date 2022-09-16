@@ -1,6 +1,6 @@
 name: honeycomb
 description: Smart Service Locator.
-version: 0.2.0+1
+version: 0.3.0
 repository: https://github.com/AlexanderFarkas/honeycomb/tree/master/packages/honeycomb
 
 environment:
