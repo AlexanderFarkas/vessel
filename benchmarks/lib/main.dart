@@ -1,4 +1,4 @@
-import 'honeycomb/create_in_depth.dart' as create_in_depth;
+import 'honeycomb/create_in_depth_scoped.dart' as create_in_depth;
 
 void main() {
   print("honeycomb");

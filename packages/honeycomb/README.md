@@ -11,7 +11,7 @@ and the Flutter guide for
 [developing packages and plugins](https://flutter.dev/developing-packages). 
 -->
 
-Smart IoC-container
+Smart Service Locator
 
 ### Navigation
 - [How is it different from Riverpod?](#how-is-it-different-from-riverpod)
@@ -32,6 +32,7 @@ Smart IoC-container
 
 * It's not a state management solution
 * Only 2 provider types
+* You can scope providers, but overrides are only available globally
 * Providers are scoped automatically if one of their dependencies is also scoped.
   
 ## Getting started
@@ -203,9 +204,9 @@ Providers can be scoped:
 ```dart
 final userProvider = Provider((_) => User(...));
 final containerRoot = ProviderContainer();
-final containerChild = ProviderContainer(
-    parent: containerRoot, 
-    overrides: [userProvider],
+final containerChild = ProviderContainer.scoped(
+    [userProvider],
+    parent: containerRoot,
 );
 
 void main() {
@@ -230,9 +231,9 @@ final provider3 = Provider((read) => Counter(read(provider2).count + 3));
 
 
 final container = ProviderContainer();
-final containerChild = ProviderContainer(
+final containerChild = ProviderContainer.scoped(
+    [provider2],
     parent: container, 
-    overrides: [provider2],
 );
 
 void main() {
@@ -270,7 +271,7 @@ final provider3 = Provider((read) => Counter(read(provider2).count + 3));
 
 Specs:
 * Macbook Pro M1 Pro Monterey 12.4
-* Dart SDK version: 2.18.0 (stable) on "macos_arm64"
+* Dart SDK version: 2.17.6 (stable) on "macos_arm64"
   
 I've run all benchmarks with `dart run`
 
@@ -293,12 +294,11 @@ read50: 29.1 ns per iteration
 read500: 29.5 ns per iteration
 
 ================ RESULTS ================
-:::JSON::: {"create_indepth50":47514.450000000004,"create_indepth100":140708.12,"create_indepth200":326923.46,"create_indepth500":784230.06}
+:::JSON::: {"create_scoped50":45088.270000000004,"create_scoped100":124254.7,"create_scoped200":274012.73}
 ================ FORMATTED ==============
-create provider with transitive dependency depth == 50: 47514.5 ns per iteration
-create provider with transitive dependency depth == 100: 140708.1 ns per iteration
-create provider with transitive dependency depth == 200: 326923.5 ns per iteration
-create provider with transitive dependency depth == 500: 784230.1 ns per iteration
+create provider with scoped transitive dependency and depth == 50: 45088.3 ns per iteration
+create provider with scoped transitive dependency and depth == 100: 124254.7 ns per iteration
+create provider with scoped transitive dependency and depth == 200: 274012.7 ns per iteration
 ```
 <br>
 
@@ -322,12 +322,11 @@ read50: 35.9 ns per iteration
 read500: 35.3 ns per iteration
 
 ================ RESULTS ================
-:::JSON::: {"create_indepth50":14489.41,"create_indepth100":43428.58,"create_indepth200":101261.48,"create_indepth500":243073.57}
+:::JSON::: {"create_scoped50":52134.64,"create_scoped100":440524.76,"create_scoped200":2088768.51}
 ================ FORMATTED ==============
-create provider with transitive dependency depth == 50: 14489.4 ns per iteration
-create provider with transitive dependency depth == 100: 43428.6 ns per iteration
-create provider with transitive dependency depth == 200: 101261.5 ns per iteration
-create provider with transitive dependency depth == 500: 243073.6 ns per iteration
+create provider with scoped transitive dependency and depth == 50: 52134.6 ns per iteration
+create provider with scoped transitive dependency and depth == 100: 440524.8 ns per iteration
+create provider with scoped transitive dependency and depth == 200: 2088768.5 ns per iteration
 ```
 
 ## Is it production ready?

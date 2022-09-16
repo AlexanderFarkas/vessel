@@ -32,11 +32,6 @@ void main() {
     watch: watch,
     printer: printer,
   );
-  _benchmark(
-    depth: 500,
-    watch: watch,
-    printer: printer,
-  );
 
   printer.printToStdout();
 }
@@ -49,9 +44,6 @@ void _benchmark({
   const scale = 1000.0 / _kNumIterations;
 
   for (int i = 0; i < _kNumIterations; i++) {
-    final _container = ProviderContainer();
-    final _container2 = ProviderContainer.scoped([], parent: _container);
-    final container = ProviderContainer.scoped([], parent: _container2);
     final providers = [];
     for (int i = 0; i < depth; i++) {
       if (i == 0) {
@@ -60,6 +52,13 @@ void _benchmark({
         providers.add(Provider((read) => read(providers[i - 1]) + 1));
       }
     }
+
+    final _container = ProviderContainer();
+    final _container2 = ProviderContainer.scoped([
+      providers[40],
+    ], parent: _container);
+    final container = ProviderContainer.scoped([], parent: _container2);
+
     watch.start();
     container.read(providers.last);
     watch.stop();
@@ -68,9 +67,9 @@ void _benchmark({
   final elapsed = watch.elapsedMicroseconds;
 
   printer.addResult(
-    description: 'create provider with transitive dependency depth == $depth',
+    description: 'create provider with scoped transitive dependency and depth == $depth',
     value: elapsed * scale,
     unit: 'ns per iteration',
-    name: 'create_indepth$depth',
+    name: 'create_scoped$depth',
   );
 }
