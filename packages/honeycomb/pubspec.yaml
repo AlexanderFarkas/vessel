@@ -1,6 +1,7 @@
 name: honeycomb
-description: Smart IoC Container.
+description: Smart Service Locator.
 version: 0.2.0+1
+repository: https://github.com/AlexanderFarkas/honeycomb/tree/master/packages/honeycomb
 
 environment:
   sdk: '>=2.17.6 <3.0.0'
