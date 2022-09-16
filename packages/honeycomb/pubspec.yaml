@@ -11,6 +11,5 @@ dev_dependencies:
   test: ^1.16.0
 
 dependencies:
-  fast_immutable_collections: ^7.4.1
   meta: ^1.8.0
 
