@@ -9,15 +9,6 @@ void main() {
   );
 }
 
-class CounterViewModel extends ValueNotifier<int> {
-  CounterViewModel() : super(0);
-
-  void increment() {
-    value++;
-    notifyListeners();
-  }
-}
-
 class CounterApp extends StatelessWidget {
   const CounterApp({Key? key}) : super(key: key);
 
@@ -29,7 +20,7 @@ class CounterApp extends StatelessWidget {
   }
 }
 
-final counterProvider = Provider((_) => CounterViewModel(), dispose: (state) => state.dispose());
+final counterProvider = Provider((_) => ValueNotifier(0), dispose: (state) => state.dispose());
 
 class HomePage extends StatelessWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -126,9 +117,7 @@ class _IncrementButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return OutlinedButton(
-      onPressed: () {
-        counterProvider.of(context).increment();
-      },
+      onPressed: () => counterProvider.of(context).value++,
       child: const Text("Increment"),
     );
   }
