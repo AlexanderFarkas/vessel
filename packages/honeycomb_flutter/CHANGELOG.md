@@ -1,3 +1,7 @@
+## 0.2.2
+
+ - **FEAT**: various enhancements.
+
 ## 0.2.1
 
  - **FEAT**: downgrade meta deps.
