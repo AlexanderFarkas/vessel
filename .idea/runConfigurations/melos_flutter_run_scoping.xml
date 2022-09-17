@@ -1,0 +1,6 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Flutter Run -&gt; 'scoping'" type="FlutterRunConfigurationType" factoryName="Flutter">
+    <option name="filePath" value="$PROJECT_DIR$/packages/honeycomb_flutter/examples/scoping/lib/main.dart" />
+    <method v="2" />
+  </configuration>
+</component>

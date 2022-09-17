@@ -1,0 +1,6 @@
+# melos_managed_dependency_overrides: honeycomb,honeycomb_flutter
+dependency_overrides:
+  honeycomb:
+    path: ../../../honeycomb
+  honeycomb_flutter:
+    path: ../..
