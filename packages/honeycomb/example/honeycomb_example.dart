@@ -6,5 +6,5 @@ final maxHealthProvider = Provider((read) => read(defaultMaxHealthProvider));
 
 void main(List<String> args) {
   final container = ProviderContainer();
-  print(container.read(defaultMaxHealthProvider)); // 100
+  print(container.read(maxHealthProvider)); // 100
 }
