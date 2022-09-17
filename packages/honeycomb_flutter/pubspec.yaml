@@ -1,5 +1,5 @@
 name: honeycomb_flutter
-description: Flutter wrapper around honeycomb
+description: honeycomb for Flutter
 version: 0.3.0
 repository: https://github.com/AlexanderFarkas/honeycomb/tree/master/packages/honeycomb_flutter
 
@@ -12,6 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
   honeycomb: ^0.3.1
+  
 dev_dependencies:
   lints: ^2.0.0
   test: ^1.16.0
