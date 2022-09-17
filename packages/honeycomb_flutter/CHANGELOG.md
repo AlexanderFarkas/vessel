@@ -1,3 +1,9 @@
+## 0.3.0
+
+> Note: This release has breaking changes.
+
+ - **BREAKING** **FEAT**: changed version constraint.
+
 ## 0.2.2
 
  - **FEAT**: various enhancements.
