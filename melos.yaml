@@ -3,6 +3,7 @@ repository: https://github.com/AlexanderFarkas/honeycomb
 
 packages:
   - packages/**
+  - examples/**
 
 command:
   bootstrap:
