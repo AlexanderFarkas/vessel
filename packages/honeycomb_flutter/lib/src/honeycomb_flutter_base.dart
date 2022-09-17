@@ -1,6 +1,22 @@
-// TODO: Put public facing types in this file.
+import 'package:flutter/src/foundation/key.dart';
+import 'package:flutter/src/widgets/framework.dart';
 
-/// Checks if you are awesome. Spoiler: you are.
-class Awesome {
-  bool get isAwesome => true;
+class ProviderScope extends StatefulWidget {
+  const ProviderScope({Key? key}) : super(key: key);
+
+  @override
+  State<ProviderScope> createState() => _ProviderScopeState();
+}
+
+class _ProviderScopeState extends State<ProviderScope> {
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+  @override
+  Widget build(BuildContext context) {
+    
+  }
 }

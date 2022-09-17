@@ -1,6 +1,7 @@
 name: honeycomb_flutter
 description: Flutter wrapper around honeycomb
 version: 0.2.0
+repository: https://github.com/AlexanderFarkas/honeycomb/tree/master/packages/honeycomb_flutter
 
 environment:
   sdk: '>=2.17.6 <3.0.0'
@@ -10,6 +11,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  honeycomb: 0.3.0
+
 
 dev_dependencies:
   lints: ^2.0.0
