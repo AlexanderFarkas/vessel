@@ -214,7 +214,7 @@ class SharedCounterScope extends StatelessWidget {
 
 Consider the example with ValueNotifier
 
-1. Define provider
+1. Define provider class
   ```dart
   class ValueNotifierProvider<T> extends Provider<ValueNotifier<T>> {
     ValueNotifierProvider(
