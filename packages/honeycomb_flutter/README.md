@@ -1,6 +1,6 @@
 Honeycomb for Flutter
 
-For more information about DI itself see (honeycomb)[https://github.com/AlexanderFarkas/honeycomb/tree/master/packages/honeycomb]
+For more information about DI itself see [honeycomb](https://github.com/AlexanderFarkas/honeycomb/tree/master/packages/honeycomb)
 
 
 ### Navigation
