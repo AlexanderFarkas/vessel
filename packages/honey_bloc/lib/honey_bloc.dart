@@ -1,8 +1,8 @@
 /// Support for doing something awesome.
 ///
 /// More dartdocs go here.
-library honeybloc;
+library honey_bloc;
 
-export 'src/honeybloc_base.dart';
+export 'src/honey_bloc_base.dart';
 
 // TODO: Export any libraries intended for clients of this package.

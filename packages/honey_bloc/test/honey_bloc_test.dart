@@ -1,4 +1,4 @@
-import 'package:honeybloc/honeybloc.dart';
+import 'package:honey_bloc/honey_bloc.dart';
 import 'package:test/test.dart';
 
 void main() {
