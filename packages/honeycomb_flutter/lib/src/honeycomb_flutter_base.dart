@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
+
 import 'package:honeycomb/honeycomb.dart';
+import 'package:honeycomb_flutter/src/shared_provider_scope.dart';
 
 class ProviderScope extends StatefulWidget {
   final List<MaybeScoped> scoped;
@@ -11,11 +13,23 @@ class ProviderScope extends StatefulWidget {
   }) : super(key: key);
 
   static root({
-    required Widget child,
     List<Override> overrides = const [],
+    required Widget child,
   }) {
     return _RootProviderScope(
       overrides: overrides,
+      child: child,
+    );
+  }
+
+  static shared({
+    required String id,
+    required List<MaybeScoped> scoped,
+    required Widget child,
+  }) {
+    return SharedProviderScope(
+      id: id,
+      scoped: scoped,
       child: child,
     );
   }
@@ -36,7 +50,7 @@ class _ProviderScopeState extends State<ProviderScope> {
 
   @override
   void dispose() {
-    _container.dispose();
+    _container.disposeProvidables();
     super.dispose();
   }
 
@@ -100,7 +114,7 @@ class _RootProviderScopeState extends State<_RootProviderScope> {
 
   @override
   void dispose() {
-    _container.dispose();
+    _container.disposeProvidables();
     super.dispose();
   }
 
@@ -114,7 +128,7 @@ class _RootProviderScopeState extends State<_RootProviderScope> {
 }
 
 extension ContextProviderExtension<T> on ProviderBase<T> {
-  // You should listen in your own state management wrappers. 
+  // You should listen in your own state management wrappers.
   // E.g. in self-made BlocBuilder
   T of(BuildContext context, {bool listen = false}) {
     return UncontrolledProviderScope.of(context, listen: listen).read(this);

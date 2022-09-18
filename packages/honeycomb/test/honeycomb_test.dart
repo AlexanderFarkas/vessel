@@ -150,7 +150,7 @@ void main() {
       expect(container.isPresent(disposable), isTrue);
       expect(calledOnce, isFalse);
 
-      container.dispose();
+      container.disposeProvidables();
       expect(calledOnce, isTrue);
     });
   });
@@ -284,7 +284,6 @@ void main() {
           expect(child2.providablesLength(), equals(2));
           expect(child1.providablesLength(), equals(0));
           expect(root.providablesLength(), equals(1));
-
         });
       });
     },

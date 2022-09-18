@@ -1,26 +1,46 @@
-part of '../honeycomb.dart';
+part of 'internal_api.dart';
 
 ProviderBase? _circularDependencySentinel;
 
 abstract class ProviderContainer {
-  factory ProviderContainer({List<Override> overrides}) = _RootContainer;
+  factory ProviderContainer({List<Override> overrides}) = RootProviderContainer;
 
   factory ProviderContainer.root({
     List<Override> overrides,
-  }) = _RootContainer;
+  }) = RootProviderContainer;
 
   factory ProviderContainer.scoped(
     List<MaybeScoped> scoped, {
     required ProviderContainer parent,
-  }) = _ScopedContainer;
+  }) =>
+      ScopedProviderContainer(
+        scoped,
+        parent: parent,
+        cachedIsScoped: {},
+        providables: {},
+      );
+
+  @internal
+  factory ProviderContainer.shared(
+    List<MaybeScoped> scoped, {
+    required ProviderContainer parent,
+    required Map<ProviderBase, dynamic> providables,
+    required Map<MaybeScoped, bool> cachedIsScoped,
+  }) =>
+      ScopedProviderContainer(
+        scoped,
+        parent: parent,
+        cachedIsScoped: cachedIsScoped,
+        providables: providables,
+      );
 
   ProviderContainer._();
 
   /// Public api
   T read<T>(ProviderBase<T> provider);
 
-  void dispose() {
-    for (final dispose in _onDispose) {
+  void disposeProvidables() {
+    for (final dispose in onDispose) {
       dispose();
     }
   }
@@ -28,12 +48,17 @@ abstract class ProviderContainer {
   /// Implementation
   HashMap<ProviderFactory, FactoryOverride> get _factoryOverrides;
   HashMap<ProviderBase, ProviderOverride> get _providerOverrides;
-  Map<ProviderBase, dynamic> get _providables;
-  _RootContainer get _rootContainer;
 
-  late final List<void Function()> _onDispose = [];
+  @protected
+  Map<ProviderBase, dynamic> get providables;
 
-  _CreateResult<T> _create<T>(ProviderBase<T> provider) => _circularDependencyCheck(
+  @protected
+  RootProviderContainer get rootContainer;
+
+  @internal
+  late final List<void Function()> onDispose = [];
+
+  ProviderCreationResult<T> _create<T>(ProviderBase<T> provider) => _circularDependencyCheck(
         lock: provider,
         () {
           final directDependencies = HashSet<MaybeScoped>();
@@ -50,14 +75,14 @@ abstract class ProviderContainer {
             return read(dependency);
           });
 
-          final result = _CreateResult(
+          final result = ProviderCreationResult(
             value: value,
             origin: provider,
             dependencies: directDependencies,
             actualProvider: actualProvider,
           );
 
-          _setDependencies(result);
+          setDependencies(result);
 
           return result;
         },
@@ -71,7 +96,7 @@ abstract class ProviderContainer {
     return (overridden as ProviderBase<T>?) ?? provider;
   }
 
-  _CreateResult<T> _circularDependencyCheck<T>(_CreateResult<T> Function() create,
+  ProviderCreationResult<T> _circularDependencyCheck<T>(ProviderCreationResult<T> Function() create,
       {required ProviderBase<T> lock}) {
     if (_circularDependencySentinel == lock) {
       throw CircularDependencyException("There is a circular dependency on $lock");
@@ -86,15 +111,19 @@ abstract class ProviderContainer {
     }
   }
 
-  T _setProvidableFromResult<T>(_CreateResult<T> result) {
+  @protected
+  @internal
+  T setProvidableFromResult<T>(ProviderCreationResult<T> result) {
     final dispose = result.actualProvider.dispose;
     if (dispose != null) {
-      _onDispose.add(() => dispose.call(result.value));
+      onDispose.add(() => dispose.call(result.value));
     }
-    return _providables[result.origin] = result.value;
+    return providables[result.origin] = result.value;
   }
 
-  void _setDependencies<T>(_CreateResult<T> result) {
+  @protected
+  @internal
+  void setDependencies<T>(ProviderCreationResult<T> result) {
     final origin = result.origin;
 
     late final MaybeScoped key;
@@ -104,15 +133,19 @@ abstract class ProviderContainer {
       key = origin;
     }
 
-    _rootContainer.directDependencies[key] ??= result.dependencies;
+    rootContainer.directDependencies[key] ??= result.dependencies;
   }
 
-  HashSet<MaybeScoped>? _getDirectDependencies<T>(ProviderBase<T> provider) {
-    final key = _getDependencyKey(provider);
-    return _rootContainer.directDependencies[key];
+  @protected
+  @internal
+  HashSet<MaybeScoped>? getDirectDependencies<T>(ProviderBase<T> provider) {
+    final key = getDependencyKey(provider);
+    return rootContainer.directDependencies[key];
   }
 
-  MaybeScoped _getDependencyKey<T>(ProviderBase<T> origin) {
+  @protected
+  @internal
+  MaybeScoped getDependencyKey<T>(ProviderBase<T> origin) {
     late final MaybeScoped key;
     if (origin is FactoryProvider<T, dynamic>) {
       key = origin.factory;
@@ -122,26 +155,29 @@ abstract class ProviderContainer {
     return key;
   }
 
+  @protected
+  @internal
+  bool isScoped<T>(ProviderBase<T> provider);
+
   @visibleForTesting
   bool isPresent(ProviderBase provider) {
-    return _providables.containsKey(provider);
+    return providables.containsKey(provider);
   }
 
   @visibleForTesting
   int providablesLength() {
-    return _providables.length;
+    return providables.length;
   }
-
-  bool isScoped<T>(ProviderBase<T> provider);
 }
 
-class _CreateResult<T> {
+@internal
+class ProviderCreationResult<T> {
   final T value;
   final ProviderBase<T> origin;
   final ProviderBase<T> actualProvider;
   final HashSet<MaybeScoped> dependencies;
 
-  _CreateResult({
+  ProviderCreationResult({
     required this.value,
     required this.origin,
     required this.actualProvider,
@@ -149,9 +185,9 @@ class _CreateResult<T> {
   });
 }
 
-class _RootContainer extends ProviderContainer {
+class RootProviderContainer extends ProviderContainer {
   @override
-  final _providables = <ProviderBase, dynamic>{};
+  final providables = <ProviderBase, dynamic>{};
   final HashMap<MaybeScoped, HashSet<MaybeScoped>> directDependencies = HashMap();
 
   @override
@@ -160,7 +196,7 @@ class _RootContainer extends ProviderContainer {
   @override
   late final HashMap<ProviderBase, ProviderOverride> _providerOverrides;
 
-  _RootContainer({List<Override> overrides = const []}) : super._() {
+  RootProviderContainer({List<Override> overrides = const []}) : super._() {
     final HashMap<ProviderFactory, FactoryOverride> factoryOverrides = HashMap();
     final HashMap<ProviderBase, ProviderOverride> providerOverrides = HashMap();
 
@@ -178,14 +214,14 @@ class _RootContainer extends ProviderContainer {
   }
 
   @override
-  late final _RootContainer _rootContainer = this;
+  late final RootProviderContainer rootContainer = this;
 
   @override
   T read<T>(ProviderBase<T> provider) {
-    if (_providables.containsKey(provider)) {
-      return _providables[provider];
+    if (providables.containsKey(provider)) {
+      return providables[provider];
     } else {
-      return _setProvidableFromResult(_create<T>(provider));
+      return setProvidableFromResult(_create<T>(provider));
     }
   }
 
@@ -196,15 +232,19 @@ class _RootContainer extends ProviderContainer {
   }
 }
 
-class _ScopedContainer extends ProviderContainer {
+class ScopedProviderContainer extends ProviderContainer {
   final ProviderContainer parent;
   final HashSet<MaybeScoped> scoped;
 
   @override
-  final _providables = <ProviderBase, dynamic>{};
+  final Map<ProviderBase, dynamic> providables;
 
-  _ScopedContainer(
+  final Map<MaybeScoped, bool> cachedIsScoped;
+
+  ScopedProviderContainer(
     List<MaybeScoped> scoped, {
+    required this.providables,
+    required this.cachedIsScoped,
     required this.parent,
   })  : scoped = HashSet.from(scoped),
         // assert(
@@ -221,40 +261,39 @@ class _ScopedContainer extends ProviderContainer {
 
   @override
   T read<T>(ProviderBase<T> provider) {
-    if (_providables.containsKey(provider)) {
-      return _providables[provider];
+    if (providables.containsKey(provider)) {
+      return providables[provider];
     }
 
-    final dependencies = _getDirectDependencies(provider);
+    final dependencies = getDirectDependencies(provider);
     if (dependencies == null) {
       final result = _create(provider);
 
       ProviderContainer container = this;
-      while (container is! _RootContainer) {
+      while (container is! RootProviderContainer) {
         if (container.isScoped(result.origin)) {
-          return container._setProvidableFromResult(result);
+          return container.setProvidableFromResult(result);
         }
-        container = (container as _ScopedContainer).parent;
+        container = (container as ScopedProviderContainer).parent;
       }
     } else if (isScoped(provider)) {
-      return _providables[provider] = _create(provider).value;
+      return providables[provider] = _create(provider).value;
     }
 
     return parent.read(provider);
   }
 
   @override
-  _RootContainer get _rootContainer => parent._rootContainer;
-
-  final cachedIsScoped = {};
+  RootProviderContainer get rootContainer => parent.rootContainer;
 
   @override
   bool isScoped<T>(ProviderBase<T> provider) {
-    return _isScoped(_getDependencyKey(provider));
+    return _isScoped(getDependencyKey(provider));
   }
 
   bool _isScoped<T>(MaybeScoped dependency) {
-    return cachedIsScoped[dependency] ??= scoped.contains(dependency) ||
-        _rootContainer.directDependencies[dependency]!.any(_isScoped);
+    return cachedIsScoped[dependency] ??=
+        scoped.contains(dependency) || rootContainer.directDependencies[dependency]!.any(_isScoped);
   }
 }
+
