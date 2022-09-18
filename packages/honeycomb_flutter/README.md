@@ -12,7 +12,6 @@ For more information about DI itself see [honeycomb](https://github.com/Alexande
   - [Sharing scope](#sharing-scope)
     - [When do shared providers dispose?](#when-do-shared-providers-dispose)
     - [Tip](#tip)
-  - [[Advanced] How to build your own state management wrapper?](#advanced-how-to-build-your-own-state-management-wrapper)
 
 ## Features
 
@@ -207,74 +206,6 @@ class SharedCounterScope extends StatelessWidget {
       child: child,
     );
   }
-}
-```
-
-### [Advanced] How to build your own state management wrapper?
-
-Consider the example with ValueNotifier
-
-1. Define provider class
-  ```dart
-  class ValueNotifierProvider<T> extends Provider<ValueNotifier<T>> {
-    ValueNotifierProvider(
-      ProviderCreate<ValueNotifier<T>> create, {
-      String? debugName,
-    }) : super(
-            create,
-            dispose: (vn) => vn.dispose(),
-            debugName: debugName,
-          );
-  }
-  ```
-2. Define your widget, which handles communication between your \`logic\` class and UI:
-  ```dart
-    class _ValueNotifierProviderBuilder<T> extends StatelessWidget {
-      final ValueNotifierProvider<T> provider;
-      final ValueWidgetBuilder<T> builder;
-      final Widget? child;
-
-      const _ValueNotifierProviderBuilder({
-        super.key,
-        required this.builder,
-        required this.provider,
-        this.child,
-      });
-
-      @override
-      Widget build(BuildContext context) {
-        return ValueListenableBuilder(
-          valueListenable: provider.of(context, listen: true), // Pay attention 
-          builder: builder,
-          child: child,
-        );
-      }
-    }
-
-  ```
-3. Define `Builder` method inside ValueNotifierProvider.
-  ```dart
-  // ignore: non_constant_identifier_names
-  Widget Builder({
-    required ValueWidgetBuilder<T> builder,
-    Widget? child,
-  }) =>
-      _ValueNotifierProviderBuilder(
-        provider: this,
-        builder: builder,
-      );
-  ```
-4. Use it like that
-```dart
-final counterProvider = ValueNotifierProvider((_) => ValueNotifier(0));
-
-...
-
-// Somewhere in your widgets
-Widget build(BuildContext context) {
-  return counterProvider.Builder(
-    builder: (_, value, __) => Text("Count: $value"),
-  );
 }
 ```
 
