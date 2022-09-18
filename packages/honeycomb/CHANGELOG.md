@@ -1,3 +1,9 @@
+## 0.4.0
+
+> Note: This release has breaking changes.
+
+ - **BREAKING** **FEAT**: shared scope.
+
 ## 0.3.1
 
  - **FEAT**: downgrade meta deps.
