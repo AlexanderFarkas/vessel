@@ -1,6 +1,5 @@
 part of 'internal_api.dart';
 
-
 abstract class Override {}
 
 class ProviderOverride<T> extends Override {
@@ -65,6 +64,18 @@ class Provider<T> extends ProviderBase<T> with _DebugMixin implements MaybeScope
           debugName: debugName,
         );
 
+  static factory<T, K>(
+    ProviderFactoryCreate<T, K> create, {
+    Dispose<T>? dispose,
+    String? debugName,
+  }) =>
+      ProviderFactory(
+        create,
+        dispose: dispose,
+        debugName: debugName,
+      );
+
+  @nonVirtual
   ProviderOverride<T> overrideWith(Provider<T> provider) {
     return ProviderOverride(
       origin: this,
@@ -83,10 +94,11 @@ class ProviderFactory<T, K> extends ProviderOrFactory<T> implements MaybeScoped 
   final String? debugName;
   ProviderFactory(
     this.create, {
-    super.dispose,
-    this.debugName,
+    required super.dispose,
+    required this.debugName,
   });
 
+  @nonVirtual
   ProviderBase<T> call(K param) {
     return FactoryProvider<T, K>(
       (get) => create(get, param),
@@ -97,6 +109,7 @@ class ProviderFactory<T, K> extends ProviderOrFactory<T> implements MaybeScoped 
     );
   }
 
+  @nonVirtual
   FactoryOverride<T, K> overrideWith(ProviderBase<T> Function(K) providerBuilder) {
     return FactoryOverride(
       origin: this,

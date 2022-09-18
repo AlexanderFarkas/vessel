@@ -8,4 +8,5 @@ export 'src/internal_api.dart'
         MaybeScoped,
         Override,
         ProviderBase,
-        ProviderCreate;
+        ProviderCreate,
+        ProviderFactoryCreate;

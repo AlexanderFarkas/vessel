@@ -78,19 +78,19 @@ class UserViewModel {
 final counterProvider = Provider((_) => Counter());
 
 // Factory provider
-final userVmProvider = ProviderFactory(
+final userVmProvider = Provider.factory(
     (_, int userId) => UserViewModel(userId),
 );
 ```
 
-The difference between these two is that `ProviderFactory` creates providers, while usual providers are self-contained.
+The difference between these two is that `Provider.factory` creates providers, while usual providers are self-contained.
 
 Consider `Provider` usage:
 ```dart
 container.read(counterProvider) // Counter instance
 ```
 
-And `ProviderFactory`:
+And `Provider.factory`:
 ```dart
 final user100Provider = userVmProvider(100);
 container.read(user100Provider);
@@ -106,7 +106,7 @@ final cartRepositoryProvider = Provider(
     (_) => CartRepository(),
 );
 
-final cartViewModelProvider = ProviderFactory((read, int cartId) {
+final cartViewModelProvider = Provider.factory((read, int cartId) {
     final repository = read(cartRepository);
     return CartViewModel(
         repository: repository,
@@ -166,7 +166,7 @@ final userRepositoryProvider = Provider(
     (_) => UserRepository(),
 );
 
-final userProfileVmProvider = ProviderFactory(
+final userProfileVmProvider = Provider.factory(
     (read, int userId) => UserProfileViewModel(
         userId: userId,
         repository: read(userRepositoryProvider),

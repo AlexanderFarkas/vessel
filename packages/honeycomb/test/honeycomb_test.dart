@@ -37,7 +37,7 @@ class DisposableCubit {
 }
 
 final cubitProvider = Provider((ref) => SimpleCubit());
-final familyProvider = ProviderFactory((ref, int number) => FamilyCubit(number));
+final familyProvider = Provider.factory((ref, int number) => FamilyCubit(number));
 
 void main() {
   late ProviderContainer container;
@@ -232,11 +232,11 @@ void main() {
         });
       });
       group("factory values", () {
-        final provider1 = ProviderFactory((_, int count) => Counter(1));
+        final provider1 = Provider.factory((_, int count) => Counter(1));
         final provider2 =
-            ProviderFactory((read, int count) => Counter(read(provider1(count)).count + 1));
+            Provider.factory((read, int count) => Counter(read(provider1(count)).count + 1));
         final provider3 =
-            ProviderFactory((read, int count) => Counter(read(provider2(count)).count + 1));
+            Provider.factory((read, int count) => Counter(read(provider2(count)).count + 1));
 
         test("original comment", () {
           final root = ProviderContainer();
