@@ -11,7 +11,11 @@ and the Flutter guide for
 [developing packages and plugins](https://flutter.dev/developing-packages). 
 -->
 
-Smart Service Locator
+<p align="center">
+    <img src="../../assets/logo.png" height=120 boxfit="center"/>
+</p>
+
+Service Locator for Dart and Flutter
 
 ### Navigation
 - [How is it different from Riverpod?](#how-is-it-different-from-riverpod)
