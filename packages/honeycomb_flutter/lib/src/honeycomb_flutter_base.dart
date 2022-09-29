@@ -127,10 +127,15 @@ class _RootProviderScopeState extends State<_RootProviderScope> {
   }
 }
 
-extension ContextProviderExtension<T> on ProviderBase<T> {
+extension ProviderContextExtension<T> on ProviderBase<T> {
   // You should listen in your own state management wrappers.
   // E.g. in self-made BlocBuilder
   T of(BuildContext context, {bool listen = false}) {
     return UncontrolledProviderScope.of(context, listen: listen).read(this);
   }
+}
+
+extension ContextProviderExtension on BuildContext {
+  T read<T>(ProviderBase<T> provider) => provider.of(this, listen: false);
+  T watch<T>(ProviderBase<T> provider) => provider.of(this, listen: true);
 }

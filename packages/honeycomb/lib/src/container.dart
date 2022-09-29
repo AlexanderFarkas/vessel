@@ -46,7 +46,7 @@ abstract class ProviderContainer {
   }
 
   /// Implementation
-  HashMap<ProviderFactory, FactoryOverride> get _factoryOverrides;
+  HashMap<ProviderFactoryBase, FactoryOverride> get _factoryOverrides;
   HashMap<ProviderBase, ProviderOverride> get _providerOverrides;
 
   @protected
@@ -63,19 +63,19 @@ abstract class ProviderContainer {
         () {
           final directDependencies = HashSet<MaybeScoped>();
 
-          final actualProvider = _findOverride(provider);
+          final actualProvider = _findOverride<T>(provider);
 
           // Пройти по всем зависимостям - и только слайсить их??
           final value = actualProvider.create(<T>(ProviderBase<T> dependency) {
-            if (dependency is FactoryProvider<T, dynamic>) {
+            if (dependency is FactoryProviderBase<T, dynamic>) {
               directDependencies.add(dependency.factory);
-            } else if (dependency is Provider<T>) {
+            } else if (dependency is PrimaryProviderBase<T>) {
               directDependencies.add(dependency);
             }
             return read(dependency);
           });
 
-          final result = ProviderCreationResult(
+          final result = ProviderCreationResult<T>(
             value: value,
             origin: provider,
             dependencies: directDependencies,
@@ -89,7 +89,7 @@ abstract class ProviderContainer {
       );
 
   ProviderBase<T> _findOverride<T>(ProviderBase<T> provider) {
-    ProviderBase<dynamic>? overridden = provider is FactoryProvider<T, dynamic>
+    ProviderBase<dynamic>? overridden = provider is FactoryProviderBase<T, dynamic>
         ? _factoryOverrides[provider.factory]?.getOverride(provider)
         : _providerOverrides[provider]?._override;
 
@@ -127,9 +127,9 @@ abstract class ProviderContainer {
     final origin = result.origin;
 
     late final MaybeScoped key;
-    if (origin is FactoryProvider<T, dynamic>) {
+    if (origin is FactoryProviderBase<T, dynamic>) {
       key = origin.factory;
-    } else if (origin is Provider<T>) {
+    } else if (origin is PrimaryProviderBase<T>) {
       key = origin;
     }
 
@@ -147,9 +147,9 @@ abstract class ProviderContainer {
   @internal
   MaybeScoped getDependencyKey<T>(ProviderBase<T> origin) {
     late final MaybeScoped key;
-    if (origin is FactoryProvider<T, dynamic>) {
+    if (origin is FactoryProviderBase<T, dynamic>) {
       key = origin.factory;
-    } else if (origin is Provider<T>) {
+    } else if (origin is PrimaryProviderBase<T>) {
       key = origin;
     }
     return key;
@@ -191,13 +191,13 @@ class RootProviderContainer extends ProviderContainer {
   final HashMap<MaybeScoped, HashSet<MaybeScoped>> directDependencies = HashMap();
 
   @override
-  late final HashMap<ProviderFactory, FactoryOverride> _factoryOverrides;
+  late final HashMap<ProviderFactoryBase, FactoryOverride> _factoryOverrides;
 
   @override
   late final HashMap<ProviderBase, ProviderOverride> _providerOverrides;
 
   RootProviderContainer({List<Override> overrides = const []}) : super._() {
-    final HashMap<ProviderFactory, FactoryOverride> factoryOverrides = HashMap();
+    final HashMap<ProviderFactoryBase, FactoryOverride> factoryOverrides = HashMap();
     final HashMap<ProviderBase, ProviderOverride> providerOverrides = HashMap();
 
     for (final override in overrides) {
@@ -221,7 +221,7 @@ class RootProviderContainer extends ProviderContainer {
     if (providables.containsKey(provider)) {
       return providables[provider];
     } else {
-      return setProvidableFromResult(_create<T>(provider));
+      return setProvidableFromResult<T>(_create<T>(provider));
     }
   }
 
@@ -254,7 +254,8 @@ class ScopedProviderContainer extends ProviderContainer {
         super._();
 
   @override
-  late final HashMap<ProviderFactory, FactoryOverride> _factoryOverrides = parent._factoryOverrides;
+  late final HashMap<ProviderFactoryBase, FactoryOverride> _factoryOverrides =
+      parent._factoryOverrides;
 
   @override
   late final HashMap<ProviderBase, ProviderOverride> _providerOverrides = parent._providerOverrides;
@@ -297,3 +298,12 @@ class ScopedProviderContainer extends ProviderContainer {
   }
 }
 
+class CircularDependencyException implements Exception {
+  final String message;
+  CircularDependencyException(this.message);
+
+  @override
+  String toString() {
+    return "CircularDependencyException: $message";
+  }
+}
