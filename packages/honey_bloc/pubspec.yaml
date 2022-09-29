@@ -1,5 +1,5 @@
 name: honey_bloc
-description: A starting point for Dart libraries or applications.
+description: BLoC library for honeycomb
 repository: https://github.com/AlexanderFarkas/honeycomb/tree/master/packages/honey_bloc
 version: 0.3.0
 
