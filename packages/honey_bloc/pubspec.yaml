@@ -1,6 +1,6 @@
 name: honey_bloc
 description: A starting point for Dart libraries or applications.
-version: 0.2.1
+version: 0.3.0
 # homepage: https://www.example.com
 
 environment:
@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  honeycomb_flutter: ^0.5.0
+  honeycomb_flutter: ^0.6.0
   bloc: ^8.1.0
   nested: ^1.0.0
   

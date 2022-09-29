@@ -1,3 +1,9 @@
+## 0.3.0
+
+> Note: This release has breaking changes.
+
+ - **BREAKING** **FIX**: wrong equality fixed.
+
 ## 0.2.1
 
  - **FEAT**: changed return type in BlocProvider.
