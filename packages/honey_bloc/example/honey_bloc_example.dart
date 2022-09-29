@@ -30,7 +30,7 @@ class App extends StatelessWidget {
               ),
               SizedBox(height: 10),
               OutlinedButton(
-                onPressed: context.watch(counterCubitProvider).increment,
+                onPressed: counterCubitProvider.of(context, listen: true).increment,
                 child: Text("Increment"),
               ),
             ],

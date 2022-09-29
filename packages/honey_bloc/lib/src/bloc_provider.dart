@@ -55,7 +55,7 @@ class BlocProviderFactory<B extends BlocBase<S>, S, K>
 }
 
 mixin BlocBindingMixin<B extends BlocBase<S>, S> implements ProviderBase<B> {
-  Widget Builder({
+  BlocBuilder<B, S> Builder({
     Key? key,
     BlocBuilderCondition<S>? buildWhen,
     required BlocWidgetBuilder<S> builder,
@@ -68,7 +68,7 @@ mixin BlocBindingMixin<B extends BlocBase<S>, S> implements ProviderBase<B> {
     );
   }
 
-  Widget Listener({
+  BlocListener<B, S> Listener({
     Key? key,
     BlocListenerCondition<S>? listenWhen,
     required BlocWidgetListener<S> listener,
@@ -83,7 +83,7 @@ mixin BlocBindingMixin<B extends BlocBase<S>, S> implements ProviderBase<B> {
     );
   }
 
-  Widget Consumer({
+  BlocConsumer<B, S> Consumer({
     Key? key,
     BlocListenerCondition<S>? listenWhen,
     required BlocWidgetListener<S> listener,
