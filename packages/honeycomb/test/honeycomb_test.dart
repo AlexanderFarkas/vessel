@@ -37,7 +37,7 @@ class DisposableCubit {
 }
 
 final cubitProvider = Provider((ref) => SimpleCubit());
-final familyProvider = Provider.factory((ref, int number) => FamilyCubit(number));
+final familyProvider = Provider.factory<FamilyCubit, int>((ref, number) => FamilyCubit(number));
 
 void main() {
   late ProviderContainer container;
@@ -58,12 +58,23 @@ void main() {
     );
   });
 
-  test("Always same", () {
-    final cubit1 = container.read(cubitProvider);
-    final cubit2 = container.read(cubitProvider);
+  group(
+    "Always same",
+    () {
+      test("Single", () {
+        final cubit1 = container.read(cubitProvider);
+        final cubit2 = container.read(cubitProvider);
 
-    expect(cubit1, equals(cubit2));
-  });
+        expect(cubit1, equals(cubit2));
+      });
+      test("Family", () {
+        final cubit1 = container.read(familyProvider(1));
+        final cubit2 = container.read(familyProvider(1));
+
+        expect(cubit1, equals(cubit2));
+      });
+    },
+  );
 
   group('Parent relationship', () {
     group('Without overrides', () {

@@ -87,7 +87,7 @@ class FactoryProviderBase<TState, TParam> extends ProviderBase<TState> {
 
   @override
   bool operator ==(Object other) {
-    return other is FactoryProvider && other.factory == factory && other.param == param;
+    return other is FactoryProviderBase && other.factory == factory && other.param == param;
   }
 
   @override

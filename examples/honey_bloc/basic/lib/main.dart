@@ -3,7 +3,9 @@ import 'package:honeycomb_flutter/honeycomb_flutter.dart';
 
 import 'package:honey_bloc/honey_bloc.dart';
 
-final counterCubitProvider = BlocProvider<CounterCubit, int>((_) => CounterCubit(0));
+final counterCubitProvider = BlocProvider.factory<CounterCubit, int, int>(
+  (_, initialValue) => CounterCubit(initialValue),
+);
 
 class CounterCubit extends Cubit<int> {
   CounterCubit(super.initialState);
@@ -18,12 +20,13 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final factoriedCubitProvider = counterCubitProvider(20);
     return MaterialApp(
       home: Scaffold(
         body: SizedBox.expand(
           child: MultiBlocListener(
             listeners: [
-              counterCubitProvider.Listener(
+              factoriedCubitProvider.Listener(
                 listenWhen: (previous, current) {
                   print("Prev: $previous, Curr: $current");
                   return current % 2 == 0;
@@ -35,13 +38,13 @@ class App extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                counterCubitProvider.Builder(
+                factoriedCubitProvider.Builder(
                   builder: (context, state) => Text("Count: $state"),
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 OutlinedButton(
-                  onPressed: counterCubitProvider.of(context, listen: true).increment,
-                  child: Text("Increment"),
+                  onPressed: context.watch(factoriedCubitProvider).increment,
+                  child: const Text("Increment"),
                 ),
               ],
             ),
@@ -55,7 +58,7 @@ class App extends StatelessWidget {
 void main() {
   return runApp(
     ProviderScope.root(
-      child: App(),
+      child: const App(),
     ),
   );
 }
