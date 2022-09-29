@@ -1,3 +1,8 @@
+## 0.6.0+1
+
+ - **DOCS**: removed logo.
+ - **DOCS**: added logo.
+
 ## 0.6.0
 
 > Note: This release has breaking changes.

@@ -1,3 +1,7 @@
+## 0.3.0+1
+
+ - **DOCS**: added documentation for honey_bloc.
+
 ## 0.3.0
 
 > Note: This release has breaking changes.
