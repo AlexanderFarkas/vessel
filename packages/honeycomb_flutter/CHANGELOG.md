@@ -1,3 +1,12 @@
+## 0.5.0
+
+> Note: This release has breaking changes.
+
+ - **DOCS**: removed section.
+ - **DOCS**: clarification in honeycomb_flutter.
+ - **DOCS**: updated link to honeycomb in honeycomb_flutter.
+ - **BREAKING** **FEAT**: massive refactoring.
+
 ## 0.4.0
 
 > Note: This release has breaking changes.

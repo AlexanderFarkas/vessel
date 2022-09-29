@@ -1,3 +1,10 @@
+## 0.5.0
+
+> Note: This release has breaking changes.
+
+ - **FEAT**: added factory static function to Provider.
+ - **BREAKING** **FEAT**: massive refactoring.
+
 ## 0.4.0
 
 > Note: This release has breaking changes.
