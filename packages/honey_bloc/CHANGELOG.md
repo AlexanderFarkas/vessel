@@ -1,3 +1,7 @@
+## 0.3.0+2
+
+ - **DOCS**: added clarification for ProviderScope.
+
 ## 0.3.0+1
 
  - **DOCS**: added documentation for honey_bloc.

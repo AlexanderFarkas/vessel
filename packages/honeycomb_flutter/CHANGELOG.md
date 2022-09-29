@@ -1,3 +1,7 @@
+## 0.6.0+2
+
+ - **DOCS**: added clarification for ProviderScope.
+
 ## 0.6.0+1
 
  - Update a dependency to the latest release.
