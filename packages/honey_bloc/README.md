@@ -19,7 +19,13 @@ class CounterCubit extends Cubit<int> {
 ### main.dart
 
 ```dart
-void main() => runApp(ProviderScope.root(CounterApp()));
+void main() => runApp(
+    // For widgets to be able to read providers, we need to wrap the entire
+    // application in a "ProviderScope.root" widget.
+    ProviderScope.root(
+        child: CounterApp(),
+    ),
+);
 class CounterApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
