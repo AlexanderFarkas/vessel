@@ -1,5 +1,5 @@
 name: honey_bloc
-description: BLoC library for honeycomb
+description: honeycomb wrapper for bloc package
 repository: https://github.com/AlexanderFarkas/honeycomb/tree/master/packages/honey_bloc
 version: 0.3.0
 

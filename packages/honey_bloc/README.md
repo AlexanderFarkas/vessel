@@ -1,4 +1,4 @@
-BLoC library for honeycomb
+honeycomb_flutter wrapper for [bloc](https://github.com/felangel/bloc) package
 
 ## Usage
 
@@ -60,3 +60,92 @@ class CounterPage extends StatelessWidget {
   }
 }
 ```
+
+
+## Listen for changes
+
+```dart
+final counterCubitProvider = BlocProvider<CounterCubit, int>(
+    (_) => CounterCubit(),
+);
+
+...
+
+Widget build(BuildContext context) {
+    return counterCubitProvider.Listener(
+        listener: (context, state) {
+            print("Counter: $state")
+        },
+        child: Text(...),
+    );
+}
+```
+
+### Several listeners:
+```dart
+Widget build(BuildContext context) {
+    return MultiBlocListener(
+        listeners: [
+            counterCubitProvider.Listener(
+                listener: (context, state) {
+                    print("Counter: $state")
+                },
+            ),
+            themeCubitProvider.Listener(
+                listener: (context, state) {
+                    print("Theme: $state")
+                },
+            ),
+        ],
+        child: Text(...),
+    );
+}
+```
+
+### Filter states
+If we want to trigger listener only when `counter`'s state is even:
+```dart
+counterCubitProvider.Listener(
+    listenWhen: (previousState, currentState) => currentState % 2 == 0,
+    listener: (context, state) {
+        print("Counter: $state")
+    },
+),
+```
+
+## Consumer - combine Builder and Listener into single widget
+```dart
+counterCubitProvider.Consumer(
+    listenWhen: (previousState, currentState) => currentState % 2 == 0,
+    listener: (context, state) {
+        print("Counter: $state")
+    },
+    buildWhen: (_, currentState) => currentState % 2 != 0,
+    builder: (context, state) => Text("Only odd count: $state"),
+)
+```
+
+## How to define Repositories?
+
+You could use `honeycomb`'s `Provider` for that:
+```dart
+final userRepositoryProvider = Provider((_) => UserRepository());
+
+final userProfileCubitProvider = BlocProvider.factory<UserProfileCubit, User, int>(
+    (read, int userId) => UserProfileCubit(
+        userId: userId,
+        repository: read(userRepositoryProvider),
+    ),
+);
+
+...
+
+Widget builder(BuildContext context) {
+    return userProfileCubitProvider(1).Builder(
+        builder: (context, state) => Text("username: ${state.name}"),
+    );
+} 
+```
+
+## How to scope, dispose and override cubits?
+Check out [`honeycomb_flutter`](https://github.com/AlexanderFarkas/honeycomb/tree/master/packages/honeycomb_flutter) documentation
