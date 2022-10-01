@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:honey_bloc/src/bloc_builder.dart';
 import 'package:honey_bloc/src/bloc_consumer.dart';
 import 'package:honey_bloc/src/bloc_listener.dart';
+import 'package:honey_bloc/src/bloc_selector.dart';
 import 'package:honeycomb_flutter/honeycomb_flutter.dart';
 
 class BlocProvider<B extends BlocBase<S>, S> extends PrimaryProviderBase<B>
@@ -97,6 +98,19 @@ mixin BlocBindingMixin<B extends BlocBase<S>, S> implements ProviderBase<B> {
       builder: builder,
       listenWhen: listenWhen,
       listener: listener,
+    );
+  }
+
+  BlocSelector<B, S, T> Selector<T>({
+    Key? key,
+    required BlocWidgetSelector<S, T> selector,
+    required BlocWidgetBuilder<T> builder,
+  }) {
+    return BlocSelector<B, S, T>(
+      key: key,
+      provider: this,
+      selector: selector,
+      builder: builder,
     );
   }
 }
