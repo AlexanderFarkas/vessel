@@ -1,3 +1,7 @@
+## 0.3.1
+
+ - **FEAT**: added Selector.
+
 ## 0.3.0+2
 
  - **DOCS**: added clarification for ProviderScope.
