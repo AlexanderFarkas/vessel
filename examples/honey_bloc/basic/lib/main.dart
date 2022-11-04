@@ -57,8 +57,8 @@ class App extends StatelessWidget {
 
 void main() {
   return runApp(
-    ProviderScope.root(
-      child: const App(),
+    const ProviderScope(
+      child: App(),
     ),
   );
 }

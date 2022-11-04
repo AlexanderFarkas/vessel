@@ -5,7 +5,7 @@ final provider = ValueNotifierProvider((read) => ValueNotifier(0));
 
 void main() {
   return runApp(
-    ProviderScope.root(
+    ProviderScope(
       child: provider.Builder(
         builder: (_, value, __) => Text("$value"),
       ),

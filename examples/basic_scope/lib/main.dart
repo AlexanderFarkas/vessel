@@ -4,8 +4,8 @@ import 'package:honeycomb_flutter/honeycomb_flutter.dart';
 
 void main() {
   runApp(
-    ProviderScope.root(
-      child: const CounterApp(),
+    const ProviderScope(
+      child: CounterApp(),
     ),
   );
 }
@@ -64,7 +64,7 @@ class SecondPage extends StatelessWidget {
               title: "Global",
             ),
             ProviderScope(
-              scoped: [counterProvider],
+              overrides: [counterProvider.scope()],
               child: const Incrementer(
                 title: 'Scoped',
               ),

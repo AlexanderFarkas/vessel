@@ -43,8 +43,6 @@ class App extends StatelessWidget {
 
 void main() {
   return runApp(
-    ProviderScope.root(
-      child: App(),
-    ),
+    ProviderScope(child: App()),
   );
 }
