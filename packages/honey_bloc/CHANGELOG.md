@@ -1,3 +1,9 @@
+## 0.5.0
+
+> Note: This release has breaking changes.
+
+ - **BREAKING** **FEAT**: added dependency on flutter_bloc to avoid copy-paste.
+
 ## 0.4.0
 
 > Note: This release has breaking changes.
