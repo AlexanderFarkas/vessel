@@ -1,3 +1,9 @@
+## 0.7.0
+
+> Note: This release has breaking changes.
+
+ - **BREAKING** **FEAT**: add ability to override dependencies on any level.
+
 ## 0.6.0+1
 
  - **DOCS**: removed logo.
