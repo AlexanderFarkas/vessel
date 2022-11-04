@@ -80,14 +80,14 @@ packages:
       path: "../../packages/honeycomb"
       relative: true
     source: path
-    version: "0.6.0+1"
+    version: "0.7.0"
   honeycomb_flutter:
     dependency: "direct main"
     description:
       path: "../../packages/honeycomb_flutter"
       relative: true
     source: path
-    version: "0.6.0+2"
+    version: "0.7.0"
   lints:
     dependency: transitive
     description:

@@ -12,7 +12,9 @@ dependencies:
     sdk: flutter
   honeycomb_flutter: ^0.7.0
   bloc: ^8.1.0
+  flutter_bloc: ^8.1.1
   nested: ^1.0.0
+  meta: ^1.8.0
   
 dev_dependencies:
   lints: ^2.0.0

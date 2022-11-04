@@ -8,7 +8,6 @@
       <module fileurl="file://$PROJECT_DIR$/packages/honeycomb/melos_honeycomb.iml" filepath="$PROJECT_DIR$/packages/honeycomb/melos_honeycomb.iml" />
       <module fileurl="file://$PROJECT_DIR$/packages/honeycomb_flutter/melos_honeycomb_flutter.iml" filepath="$PROJECT_DIR$/packages/honeycomb_flutter/melos_honeycomb_flutter.iml" />
       <module fileurl="file://$PROJECT_DIR$/examples/basic_scope/melos_scoping.iml" filepath="$PROJECT_DIR$/examples/basic_scope/melos_scoping.iml" />
-      <module fileurl="file://$PROJECT_DIR$/examples/shared_scope/melos_shared_scope.iml" filepath="$PROJECT_DIR$/examples/shared_scope/melos_shared_scope.iml" />
       <module fileurl="file://$PROJECT_DIR$/melos_honeycomb.iml" filepath="$PROJECT_DIR$/melos_honeycomb.iml" />
     </modules>
   </component>

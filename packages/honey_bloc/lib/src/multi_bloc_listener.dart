@@ -1,10 +1,8 @@
 import 'package:flutter/widgets.dart';
-
-import 'package:honey_bloc/src/bloc_listener.dart';
 import 'package:nested/nested.dart';
 
 class MultiBlocListener extends StatelessWidget {
-  final List<BlocListener> listeners;
+  final List<SingleChildWidget> listeners;
   final Widget child;
   const MultiBlocListener({
     super.key,

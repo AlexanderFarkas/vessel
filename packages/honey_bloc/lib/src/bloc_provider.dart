@@ -1,12 +1,15 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:bloc/bloc.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/widgets.dart' as flutter;
+import 'package:flutter_bloc/flutter_bloc.dart' as flutter_bloc;
 import 'package:honey_bloc/src/bloc_builder.dart';
 import 'package:honey_bloc/src/bloc_consumer.dart';
 import 'package:honey_bloc/src/bloc_listener.dart';
 import 'package:honey_bloc/src/bloc_selector.dart';
+
 import 'package:honeycomb_flutter/honeycomb_flutter.dart';
+import 'package:nested/nested.dart';
 
 class BlocProvider<B extends BlocBase<S>, S> extends SingleProviderBase<B>
     with BlocBindingMixin<B, S> {
@@ -56,26 +59,28 @@ class BlocProviderFactory<B extends BlocBase<S>, S, K>
 }
 
 mixin BlocBindingMixin<B extends BlocBase<S>, S> implements ProviderBase<B> {
-  BlocBuilder<B, S> Builder({
-    Key? key,
-    BlocBuilderCondition<S>? buildWhen,
-    required BlocWidgetBuilder<S> builder,
+  flutter.Widget Builder({
+    flutter.Key? key,
+    flutter_bloc.BlocBuilderCondition<S>? buildWhen,
+    required flutter_bloc.BlocWidgetBuilder<S> builder,
   }) {
-    return BlocBuilder<B, S>(
+    return flutter.Builder(
       key: key,
-      provider: this,
-      builder: builder,
-      buildWhen: buildWhen,
+      builder: (context) => BlocBuilder<B, S>(
+        bloc: of(context),
+        builder: builder,
+        buildWhen: buildWhen,
+      ),
     );
   }
 
-  BlocListener<B, S> Listener({
-    Key? key,
-    BlocListenerCondition<S>? listenWhen,
-    required BlocWidgetListener<S> listener,
-    Widget? child,
+  SingleChildWidget Listener({
+    flutter.Key? key,
+    flutter_bloc.BlocListenerCondition<S>? listenWhen,
+    required flutter_bloc.BlocWidgetListener<S> listener,
+    flutter.Widget? child,
   }) {
-    return BlocListener<B, S>(
+    return HoneycombBlocListener<B, S>(
       key: key,
       provider: this,
       listener: listener,
@@ -84,33 +89,37 @@ mixin BlocBindingMixin<B extends BlocBase<S>, S> implements ProviderBase<B> {
     );
   }
 
-  BlocConsumer<B, S> Consumer({
-    Key? key,
-    BlocListenerCondition<S>? listenWhen,
-    required BlocWidgetListener<S> listener,
-    BlocBuilderCondition<S>? buildWhen,
-    required BlocWidgetBuilder<S> builder,
+  flutter.Widget Consumer({
+    flutter.Key? key,
+    flutter_bloc.BlocListenerCondition<S>? listenWhen,
+    required flutter_bloc.BlocWidgetListener<S> listener,
+    flutter_bloc.BlocBuilderCondition<S>? buildWhen,
+    required flutter_bloc.BlocWidgetBuilder<S> builder,
   }) {
-    return BlocConsumer<B, S>(
+    return flutter.Builder(
       key: key,
-      provider: this,
-      buildWhen: buildWhen,
-      builder: builder,
-      listenWhen: listenWhen,
-      listener: listener,
+      builder: (context) => BlocConsumer<B, S>(
+        bloc: of(context),
+        buildWhen: buildWhen,
+        builder: builder,
+        listenWhen: listenWhen,
+        listener: listener,
+      ),
     );
   }
 
-  BlocSelector<B, S, T> Selector<T>({
-    Key? key,
-    required BlocWidgetSelector<S, T> selector,
-    required BlocWidgetBuilder<T> builder,
+  flutter.Widget Selector<T>({
+    flutter.Key? key,
+    required flutter_bloc.BlocWidgetSelector<S, T> selector,
+    required flutter_bloc.BlocWidgetBuilder<T> builder,
   }) {
-    return BlocSelector<B, S, T>(
+    return flutter.Builder(
       key: key,
-      provider: this,
-      selector: selector,
-      builder: builder,
+      builder: (context) => BlocSelector<B, S, T>(
+        bloc: of(context),
+        selector: selector,
+        builder: builder,
+      ),
     );
   }
 }

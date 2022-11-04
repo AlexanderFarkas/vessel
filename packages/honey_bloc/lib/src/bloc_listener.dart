@@ -1,100 +1,42 @@
-import 'dart:async';
-
-import 'package:bloc/bloc.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart' as flutter_bloc;
+import 'package:honey_bloc/honey_bloc.dart';
 import 'package:honeycomb_flutter/honeycomb_flutter.dart';
 import 'package:nested/nested.dart';
+import 'package:meta/meta.dart';
 
-typedef BlocWidgetListener<S> = void Function(BuildContext context, S state);
-typedef BlocListenerCondition<S> = bool Function(S previous, S current);
-
-class BlocListener<B extends BlocBase<S>, S> extends SingleChildStatefulWidget {
-  final ProviderBase<B> provider;
-  final Widget? child;
-  final BlocWidgetListener<S> listener;
-  final BlocListenerCondition<S>? listenWhen;
-
-  const BlocListener({
-    Key? key,
-    required this.provider,
-    required this.listener,
-    this.listenWhen,
-    this.child,
-  }) : super(key: key, child: child);
-
-  @override
-  SingleChildState<BlocListener<B, S>> createState() => _BlocListenerState();
+class BlocListener<B extends StateStreamable<S>, S> extends flutter_bloc.BlocListener<B, S> {
+  BlocListener({
+    super.key,
+    required super.listener,
+    required B super.bloc,
+    super.listenWhen,
+    super.child,
+  });
 }
 
-class _BlocListenerState<B extends BlocBase<S>, S> extends SingleChildState<BlocListener<B, S>> {
-  StreamSubscription<S>? _subscription;
-  late B _bloc;
-  late S _previousState;
+@internal
+class HoneycombBlocListener<B extends BlocBase<S>, S> extends SingleChildStatelessWidget {
+  final ProviderBase<B> provider;
+  final flutter_bloc.BlocWidgetListener<S> listener;
 
-  @override
-  void initState() {
-    super.initState();
-    _bloc = widget.provider.of(context);
-    _previousState = _bloc.state;
-    _subscribe();
-  }
+  final flutter_bloc.BlocListenerCondition<S>? listenWhen;
 
-  @override
-  void didUpdateWidget(BlocListener<B, S> oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    final oldBloc = oldWidget.provider.of(context);
-    final currentBloc = widget.provider.of(context);
-    if (oldBloc != currentBloc) {
-      if (_subscription != null) {
-        _unsubscribe();
-        _bloc = currentBloc;
-        _previousState = _bloc.state;
-      }
-      _subscribe();
-    }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final bloc = widget.provider.of(context, listen: true);
-    if (_bloc != bloc) {
-      if (_subscription != null) {
-        _unsubscribe();
-        _bloc = bloc;
-        _previousState = _bloc.state;
-      }
-      _subscribe();
-    }
-  }
+  HoneycombBlocListener({
+    required super.key,
+    required super.child,
+    required this.provider,
+    required this.listener,
+    required this.listenWhen,
+  });
 
   @override
   Widget buildWithChild(BuildContext context, Widget? child) {
-    assert(
-      child != null,
-      '''${widget.runtimeType} used outside of MultiBlocListener must specify a child''',
+    return BlocListener(
+      bloc: provider.of(context),
+      listener: listener,
+      listenWhen: listenWhen,
+      child: child,
     );
-
-    return child!;
-  }
-
-  @override
-  void dispose() {
-    _unsubscribe();
-    super.dispose();
-  }
-
-  void _subscribe() {
-    _subscription = _bloc.stream.listen((state) {
-      if (widget.listenWhen?.call(_previousState, state) ?? true) {
-        widget.listener(context, state);
-      }
-      _previousState = state;
-    });
-  }
-
-  void _unsubscribe() {
-    _subscription?.cancel();
-    _subscription = null;
   }
 }
