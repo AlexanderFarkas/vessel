@@ -41,19 +41,19 @@ final familyProvider = Provider.factory<FamilyCubit, int>((ref, number) => Famil
 
 void main() {
   late ProviderContainer container;
-  late ProviderContainer childWithOverrides;
-  late ProviderContainer childWithoutOverrides;
+  late ProviderContainer childWithScoped;
+  late ProviderContainer childWithoutScoped;
 
   setUp(() {
-    container = ProviderContainer.root();
+    container = ProviderContainer();
 
-    childWithoutOverrides = ProviderContainer.scoped(
-      [],
+    childWithoutScoped = ProviderContainer(
+      overrides: [],
       parent: container,
     );
 
-    childWithOverrides = ProviderContainer.scoped(
-      [cubitProvider, familyProvider],
+    childWithScoped = ProviderContainer(
+      overrides: [cubitProvider.scope(), familyProvider.scope()],
       parent: container,
     );
   });
@@ -77,12 +77,12 @@ void main() {
   );
 
   group('Parent relationship', () {
-    group('Without overrides', () {
+    group('Without scopes', () {
       test(
         "Single",
         () {
           final cubit1 = container.read(cubitProvider);
-          final cubit2 = childWithoutOverrides.read(cubitProvider);
+          final cubit2 = childWithoutScoped.read(cubitProvider);
 
           expect(cubit1, equals(cubit2));
         },
@@ -91,24 +91,24 @@ void main() {
         "Family",
         () {
           final cubit1 = container.read(familyProvider(3));
-          final cubit2 = childWithoutOverrides.read(familyProvider(3));
+          final cubit2 = childWithoutScoped.read(familyProvider(3));
 
           expect(cubit1, equals(cubit2));
         },
       );
     });
 
-    group('With overrides', () {
+    group('With scopes', () {
       test("Single", () {
         final cubit1 = container.read(cubitProvider);
-        final cubit2 = childWithOverrides.read(cubitProvider);
+        final cubit2 = childWithScoped.read(cubitProvider);
 
         expect(cubit1, isNot(equals(cubit2)));
       });
 
       test("Family", () {
         final cubit1 = container.read(familyProvider(3));
-        final cubit2 = childWithOverrides.read(familyProvider(3));
+        final cubit2 = childWithScoped.read(familyProvider(3));
 
         expect(cubit1, isNot(equals(cubit2)));
       });
@@ -124,7 +124,7 @@ void main() {
 
       test("Same in parent after scope in child", () {
         final cubit1 = container.read(familyProvider(3));
-        final cubit2 = childWithOverrides.read(familyProvider(3));
+        final cubit2 = childWithScoped.read(familyProvider(3));
 
         expect(cubit1, isNot(equals(cubit2)));
 
@@ -136,7 +136,7 @@ void main() {
 
   test("Override with mock", () {
     final mockFamilyCubitProvider = Provider((ref) => FamilyCubit(32));
-    final mockedContainer = ProviderContainer.root(
+    final mockedContainer = ProviderContainer(
       overrides: [
         familyProvider.overrideWith((param) => mockFamilyCubitProvider),
       ],
@@ -161,7 +161,7 @@ void main() {
       expect(container.isPresent(disposable), isTrue);
       expect(calledOnce, isFalse);
 
-      container.disposeProvidables();
+      container.dispose();
       expect(calledOnce, isTrue);
     });
   });
@@ -171,13 +171,14 @@ void main() {
     final provider2 = Provider((read) => Counter(read(provider1).count + 1));
     final provider3 = Provider((read) => Counter(read(provider2).count + 3));
 
-    final container = ProviderContainer.root();
-    final containerChild = ProviderContainer.scoped(
-      [provider2],
+    final container = ProviderContainer();
+    final containerChild = ProviderContainer(
+      overrides: [provider2.scope()],
       parent: container,
     );
-    final containerChild2 = ProviderContainer.scoped([], parent: containerChild);
-    final containerChild3 = ProviderContainer.scoped([provider2], parent: containerChild2);
+    final containerChild2 = ProviderContainer(overrides: [], parent: containerChild);
+    final containerChild3 =
+        ProviderContainer(overrides: [provider2.scope()], parent: containerChild2);
 
     // now provider3 also scoped inside containerChild
     final instance3 = containerChild2.read(provider3);
@@ -213,9 +214,10 @@ void main() {
           final provider3 = Provider((read) => Counter(read(provider2).count + 1));
 
           final root = ProviderContainer();
-          final child1 = ProviderContainer.scoped([], parent: root);
-          final child2 = ProviderContainer.scoped([provider2, provider3], parent: child1);
-          final child3 = ProviderContainer.scoped([provider1], parent: child2);
+          final child1 = ProviderContainer(overrides: [], parent: root);
+          final child2 =
+              ProviderContainer(overrides: [provider2.scope(), provider3.scope()], parent: child1);
+          final child3 = ProviderContainer(overrides: [provider1.scope()], parent: child2);
 
           child3.read(provider3);
           expect(child3.providablesLength(), equals(3));
@@ -230,9 +232,9 @@ void main() {
           final provider3 = Provider((read) => Counter(read(provider2).count + 1));
 
           final root = ProviderContainer();
-          final child1 = ProviderContainer.scoped([], parent: root);
-          final child2 = ProviderContainer.scoped([provider2], parent: child1);
-          final child3 = ProviderContainer.scoped([provider1], parent: child2);
+          final child1 = ProviderContainer(overrides: [], parent: root);
+          final child2 = ProviderContainer(overrides: [provider2.scope()], parent: child1);
+          final child3 = ProviderContainer(overrides: [provider1.scope()], parent: child2);
 
           child3.read(provider3);
           child3.read(provider2);
@@ -251,9 +253,10 @@ void main() {
 
         test("original comment", () {
           final root = ProviderContainer();
-          final child1 = ProviderContainer.scoped([], parent: root);
-          final child2 = ProviderContainer.scoped([provider2, provider3], parent: child1);
-          final child3 = ProviderContainer.scoped([provider1], parent: child2);
+          final child1 = ProviderContainer(overrides: [], parent: root);
+          final child2 =
+              ProviderContainer(overrides: [provider2.scope(), provider3.scope()], parent: child1);
+          final child3 = ProviderContainer(overrides: [provider1.scope()], parent: child2);
 
           child3.read(provider3(3));
           expect(child3.providablesLength(), equals(3));
@@ -270,9 +273,9 @@ void main() {
 
         test("tweaked", () {
           final root = ProviderContainer();
-          final child1 = ProviderContainer.scoped([], parent: root);
-          final child2 = ProviderContainer.scoped([provider2], parent: child1);
-          final child3 = ProviderContainer.scoped([provider1], parent: child2);
+          final child1 = ProviderContainer(overrides: [], parent: root);
+          final child2 = ProviderContainer(overrides: [provider2.scope()], parent: child1);
+          final child3 = ProviderContainer(overrides: [provider1.scope()], parent: child2);
 
           child3.read(provider3(3));
           expect(child3.providablesLength(), equals(3));
@@ -299,6 +302,39 @@ void main() {
       });
     },
   );
+  group("Overrides", () {
+    test("Primitives", () {
+      final healthProvider = Provider((_) => 100);
+      final bossHealthProvider = Provider((_) => 50);
+
+      final root = ProviderContainer();
+      final bossRoom = ProviderContainer(
+        overrides: [healthProvider.overrideWith(bossHealthProvider)],
+      );
+
+      final generalHealth = root.read(healthProvider);
+      expect(generalHealth, equals(100));
+
+      final bossHealth = bossRoom.read(healthProvider);
+      expect(bossHealth, equals(50));
+    });
+
+    test("Factory", () {
+      final healthProvider = Provider.factory((read, int health) => health);
+      final bossHealthProvider = Provider((_) => 50);
+
+      final root = ProviderContainer();
+      final bossRoom = ProviderContainer(
+        overrides: [healthProvider.overrideWith((health) => bossHealthProvider)],
+      );
+
+      final generalHealth = root.read(healthProvider(100));
+      expect(generalHealth, equals(100));
+
+      final bossHealth = bossRoom.read(healthProvider(200));
+      expect(bossHealth, equals(50));
+    });
+  });
 }
 
 class Counter {

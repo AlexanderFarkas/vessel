@@ -1,12 +1,12 @@
 part of 'internal_api.dart';
 
-abstract class Override {}
 
 class ProviderOverride<TState> extends Override {
-  final ProviderBase<TState> _origin;
+  final SingleProviderBase<TState> _origin;
   final ProviderBase<TState> _override;
 
-  ProviderOverride({required ProviderBase<TState> origin, required ProviderBase<TState> override})
+  ProviderOverride(
+      {required SingleProviderBase<TState> origin, required ProviderBase<TState> override})
       : _origin = origin,
         _override = override;
 }

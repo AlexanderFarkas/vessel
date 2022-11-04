@@ -20,7 +20,7 @@ class ProviderFactory<TState, TParam>
   }
 }
 
-class Provider<T> extends PrimaryProviderBase<T> {
+class Provider<T> extends SingleProviderBase<T> {
   Provider(
     ProviderCreate<T> create, {
     Dispose<T>? dispose,

@@ -44,7 +44,7 @@ void _benchmark({
   const scale = 1000.0 / _kNumIterations;
 
   for (int i = 0; i < _kNumIterations; i++) {
-    final providers = [];
+    final providers = <Provider<int>>[];
     for (int i = 0; i < depth; i++) {
       if (i == 0) {
         providers.add(Provider((_) => 1));
@@ -54,10 +54,10 @@ void _benchmark({
     }
 
     final _container = ProviderContainer();
-    final _container2 = ProviderContainer.scoped([
-      providers[40],
+    final _container2 = ProviderContainer(overrides: [
+      providers[40].scope(),
     ], parent: _container);
-    final container = ProviderContainer.scoped([], parent: _container2);
+    final container = ProviderContainer(overrides: [], parent: _container2);
 
     watch.start();
     container.read(providers.last);

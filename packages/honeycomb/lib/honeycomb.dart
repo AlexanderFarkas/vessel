@@ -3,13 +3,13 @@ library honeycomb;
 export 'src/internal_api.dart'
     show
         ProviderBase,
-        PrimaryProviderBase,
+        SingleProviderBase,
         ProviderFactoryBase,
         FactoryProviderBase,
         Provider,
         ProviderFactory,
         ProviderContainer,
-        MaybeScoped,
+        Override,
         Override,
         ProviderCreate,
         Dispose,

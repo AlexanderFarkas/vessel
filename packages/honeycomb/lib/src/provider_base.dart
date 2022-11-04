@@ -7,6 +7,8 @@ typedef ProviderFactoryCreate<T, K> = T Function(ReadProvider read, K param);
 
 abstract class MaybeScoped {}
 
+abstract class Override {}
+
 abstract class ProviderOrFactory<T> {
   final Dispose<T>? dispose;
   ProviderOrFactory({required this.dispose});
@@ -23,10 +25,21 @@ abstract class ProviderBase<T> extends ProviderOrFactory<T> with _DebugMixin {
     required this.debugName,
     required Dispose<T>? dispose,
   }) : super(dispose: dispose);
+
+  @internal
+  MaybeScoped toScopable() {
+    if (this is FactoryProviderBase<T, dynamic>) {
+      return (this as FactoryProviderBase).factory;
+    } else if (this is SingleProviderBase) {
+      return this as SingleProviderBase;
+    } else {
+      throw UnsupportedError("To scopable");
+    }
+  }
 }
 
-abstract class PrimaryProviderBase<T> extends ProviderBase<T> implements MaybeScoped {
-  PrimaryProviderBase(
+abstract class SingleProviderBase<T> extends ProviderBase<T> implements MaybeScoped {
+  SingleProviderBase(
     super.create, {
     required super.debugName,
     required super.dispose,
@@ -39,6 +52,9 @@ abstract class PrimaryProviderBase<T> extends ProviderBase<T> implements MaybeSc
       override: provider,
     );
   }
+
+  @nonVirtual
+  ProviderOverride<T> scope() => ProviderOverride(origin: this, override: this);
 
   @override
   String toString() {
@@ -68,6 +84,10 @@ abstract class ProviderFactoryBase<TProvider extends FactoryProviderBase<TState,
       override: providerBuilder,
     );
   }
+
+  @nonVirtual
+  FactoryOverride<TProvider, TState, TParam> scope() =>
+      FactoryOverride(origin: this, override: this);
 }
 
 class FactoryProviderBase<TState, TParam> extends ProviderBase<TState> {

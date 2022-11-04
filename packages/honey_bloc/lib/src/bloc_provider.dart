@@ -8,7 +8,7 @@ import 'package:honey_bloc/src/bloc_listener.dart';
 import 'package:honey_bloc/src/bloc_selector.dart';
 import 'package:honeycomb_flutter/honeycomb_flutter.dart';
 
-class BlocProvider<B extends BlocBase<S>, S> extends PrimaryProviderBase<B>
+class BlocProvider<B extends BlocBase<S>, S> extends SingleProviderBase<B>
     with BlocBindingMixin<B, S> {
   BlocProvider(ProviderCreate<B> create, {String? debugName})
       : super(
