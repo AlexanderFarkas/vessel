@@ -79,8 +79,3 @@ extension ProviderContextExtension<T> on ProviderBase<T> {
     return UncontrolledProviderScope.of(context, listen: listen).read(this);
   }
 }
-
-extension ContextProviderExtension on BuildContext {
-  T read<T>(ProviderBase<T> provider) => provider.of(this, listen: false);
-  T watch<T>(ProviderBase<T> provider) => provider.of(this, listen: true);
-}
