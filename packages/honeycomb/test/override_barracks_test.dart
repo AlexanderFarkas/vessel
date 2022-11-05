@@ -13,10 +13,16 @@ class Warrior {
   Warrior(this.weapon);
 }
 
+class Castle {
+  final Warrior owner;
+
+  Castle(this.owner);
+}
+
 class Wizard {}
 
 void main() {
-  test("Barracks", () {
+  test("Direct", () {
     final warriorProvider = Provider.factory((read, Weapon weapon) => Warrior(weapon));
     final wizzardProvider = Provider((read) => Wizard());
 
@@ -85,5 +91,52 @@ void main() {
           .every((container) => container.providables.length == 2),
       isTrue,
     );
+  });
+
+  group("Transitive", () {
+    final swordManProvider = Provider((_) => Warrior(Weapon.sword));
+    final spearManProvider = Provider((_) => Warrior(Weapon.spear));
+    final castleProvider = Provider((read) => Castle(read(swordManProvider)));
+
+    late ProviderContainer root;
+    late ProviderContainer child;
+    setUp(() {
+      root = ProviderContainer();
+      child = ProviderContainer(
+        parent: root,
+        overrides: [
+          swordManProvider.overrideWith(spearManProvider),
+        ],
+      );
+    });
+
+    test("child first", () {
+      final castle = child.read(castleProvider);
+      expect(castle.owner.weapon, equals(Weapon.spear));
+      expect(root.providables.length, equals(0));
+      expect(child.providables.length, equals(2));
+
+      expect(root.read(castleProvider), isNot(equals(castle)));
+
+      expect(root.providables.length, equals(2));
+      expect(child.providables.length, equals(2));
+
+      // we expect them to be different
+      expect(child.read(spearManProvider), isNot(equals(child.read(swordManProvider))));
+    });
+
+    test("root first", () {
+      final castle = root.read(castleProvider);
+      expect(castle.owner.weapon, equals(Weapon.sword));
+      expect(root.providables.length, equals(2));
+      expect(child.providables.length, equals(0));
+
+      expect(child.read(castleProvider), isNot(equals(castle)));
+
+      expect(root.providables.length, equals(2));
+      expect(child.providables.length, equals(2));
+      // we expect them to be different
+      expect(child.read(spearManProvider), isNot(equals(child.read(swordManProvider))));
+    });
   });
 }

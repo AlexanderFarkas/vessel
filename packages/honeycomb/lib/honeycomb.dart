@@ -10,7 +10,6 @@ export 'src/internal_api.dart'
         ProviderFactory,
         ProviderContainer,
         Override,
-        Override,
         ProviderCreate,
         Dispose,
         ProviderFactoryCreate;
