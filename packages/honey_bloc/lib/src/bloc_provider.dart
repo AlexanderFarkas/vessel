@@ -67,7 +67,7 @@ mixin BlocBindingMixin<B extends BlocBase<S>, S> implements ProviderBase<B> {
     return flutter.Builder(
       key: key,
       builder: (context) => BlocBuilder<B, S>(
-        bloc: of(context),
+        bloc: of(context, listen: true),
         builder: builder,
         buildWhen: buildWhen,
       ),
@@ -99,7 +99,7 @@ mixin BlocBindingMixin<B extends BlocBase<S>, S> implements ProviderBase<B> {
     return flutter.Builder(
       key: key,
       builder: (context) => BlocConsumer<B, S>(
-        bloc: of(context),
+        bloc: of(context, listen: true),
         buildWhen: buildWhen,
         builder: builder,
         listenWhen: listenWhen,
@@ -116,7 +116,7 @@ mixin BlocBindingMixin<B extends BlocBase<S>, S> implements ProviderBase<B> {
     return flutter.Builder(
       key: key,
       builder: (context) => BlocSelector<B, S, T>(
-        bloc: of(context),
+        bloc: of(context, listen: true),
         selector: selector,
         builder: builder,
       ),

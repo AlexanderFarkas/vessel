@@ -33,7 +33,7 @@ class HoneycombBlocListener<B extends BlocBase<S>, S> extends SingleChildStatele
   @override
   Widget buildWithChild(BuildContext context, Widget? child) {
     return BlocListener(
-      bloc: provider.of(context),
+      bloc: provider.of(context, listen: true),
       listener: listener,
       listenWhen: listenWhen,
       child: child,
