@@ -1,3 +1,10 @@
+## 0.8.0
+
+> Note: This release has breaking changes.
+
+ - **DOCS**: documentation updated.
+ - **BREAKING** **FEAT**: removed extension on BuildContext.
+
 ## 0.7.0+2
 
  - Update a dependency to the latest release.

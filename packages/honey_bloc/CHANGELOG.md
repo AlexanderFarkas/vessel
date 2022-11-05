@@ -1,3 +1,10 @@
+## 0.6.0
+
+> Note: This release has breaking changes.
+
+ - **DOCS**: documentation updated.
+ - **BREAKING** **FIX**: added missing listens.
+
 ## 0.5.0+2
 
  - Update a dependency to the latest release.
