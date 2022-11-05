@@ -1,7 +1,5 @@
-# melos_managed_dependency_overrides: _common,honeycomb,honeycomb_flutter
+# melos_managed_dependency_overrides: honeycomb,honeycomb_flutter
 dependency_overrides:
-  _common:
-    path: ../_common
   honeycomb:
     path: ../../packages/honeycomb
   honeycomb_flutter:

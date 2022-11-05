@@ -2,6 +2,7 @@ Service Locator for Dart and Flutter
 
 ### Navigation
 - [How is it different from Riverpod?](#how-is-it-different-from-riverpod)
+- [How is it different from GetIt?](#how-is-it-different-from-getit)
 - [Getting started](#getting-started)
 - [Features](#features)
   - [Providers](#providers)
@@ -11,16 +12,18 @@ Service Locator for Dart and Flutter
     - [Example](#example)
   - [Scopes](#scopes)
     - [Dependencies*](#dependencies)
-- [Benchmark comparison](#benchmark-comparison)
 - [Is it production ready?](#is-it-production-ready)
 - [Credits](#credits)
 
 ## How is it different from Riverpod?
-
 * It's not a state management solution
 * Only 2 provider types
-* You can scope providers, but overrides are only available globally
-* Providers are scoped automatically if one of their dependencies is also scoped.
+* No need to specify `dependencies` to achieve correct scoping
+
+## How is it different from GetIt?
+* Type-safe factories (no more param1 and param2)
+* Providers are registered at compile-time
+* Ability to register the same type twice or more in type-safe manner.
   
 ## Getting started
 
@@ -191,8 +194,8 @@ Providers can be scoped:
 ```dart
 final userProvider = Provider((_) => User(...));
 final containerRoot = ProviderContainer();
-final containerChild = ProviderContainer.scoped(
-    [userProvider],
+final containerChild = ProviderContainer(
+    overrides: [userProvider.scope()],
     parent: containerRoot,
 );
 
@@ -203,6 +206,7 @@ void main() {
     identical(rootUser, childUser); // false
 }
 ```
+`provider.scope()` is essentially the same as `provider.overrideWith(provider)`, so scoping and overriding are basically the same thing.
 
 Provider becomes scoped, if any of it's dependencies* gets scoped.
 Consider this example:
@@ -251,70 +255,6 @@ final provider3 = Provider((read) => Counter(read(provider2).count + 3));
 * `provider3` has **2 dependencies**:
 >* direct dependency on `provider2`
 >* transitive dependency on `provider1` through `provider2`
-
-## Benchmark comparison
-
-**Disclaimer:** Always benchmark yourself
-
-Specs:
-* Macbook Pro M1 Pro Monterey 12.4
-* Dart SDK version: 2.17.6 (stable) on "macos_arm64"
-  
-I've run all benchmarks with `dart run`
-
-**honeycomb**:
-```
-================ RESULTS ================
-:::JSON::: {"create10_iteration":143.89000000000001,"create100_iteration":149.57,"create500_iteration":149.14000000000001,"create2000_iteration":148.97}
-================ FORMATTED ==============
-create10: 143.9 ns per iteration
-create100: 149.6 ns per iteration
-create500: 149.1 ns per iteration
-create2000: 149.0 ns per iteration
-
-================ RESULTS ================
-:::JSON::: {"read1_iteration":36.42,"read10_iteration":29.240000000000002,"read50_iteration":29.060000000000002,"read500_iteration":29.48}
-================ FORMATTED ==============
-read1: 36.4 ns per iteration
-read10: 29.2 ns per iteration
-read50: 29.1 ns per iteration
-read500: 29.5 ns per iteration
-
-================ RESULTS ================
-:::JSON::: {"create_scoped50":45088.270000000004,"create_scoped100":124254.7,"create_scoped200":274012.73}
-================ FORMATTED ==============
-create provider with scoped transitive dependency and depth == 50: 45088.3 ns per iteration
-create provider with scoped transitive dependency and depth == 100: 124254.7 ns per iteration
-create provider with scoped transitive dependency and depth == 200: 274012.7 ns per iteration
-```
-<br>
-
-**riverpod**
-
-```
-================ RESULTS ================
-:::JSON::: {"create10_iteration":153.81,"create100_iteration":155.49,"create500_iteration":156.42000000000002,"create2000_iteration":155.62}
-================ FORMATTED ==============
-create10: 153.8 ns per iteration
-create100: 155.5 ns per iteration
-create500: 156.4 ns per iteration
-create2000: 155.6 ns per iteration
-
-================ RESULTS ================
-:::JSON::: {"read1_iteration":39.27,"read10_iteration":36.68,"read50_iteration":35.92,"read500_iteration":35.32}
-================ FORMATTED ==============
-read1: 39.3 ns per iteration
-read10: 36.7 ns per iteration
-read50: 35.9 ns per iteration
-read500: 35.3 ns per iteration
-
-================ RESULTS ================
-:::JSON::: {"create_scoped50":52134.64,"create_scoped100":440524.76,"create_scoped200":2088768.51}
-================ FORMATTED ==============
-create provider with scoped transitive dependency and depth == 50: 52134.6 ns per iteration
-create provider with scoped transitive dependency and depth == 100: 440524.8 ns per iteration
-create provider with scoped transitive dependency and depth == 200: 2088768.5 ns per iteration
-```
 
 ## Is it production ready?
 Not enough testing have been done to consider this production ready.

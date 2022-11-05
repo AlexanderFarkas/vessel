@@ -1,6 +1,6 @@
 part of 'internal_api.dart';
 
-typedef Dispose<T> = void Function(T state);
+typedef Dispose<T> = void Function(T value);
 typedef ReadProvider = T Function<T>(ProviderBase<T> provider);
 typedef ProviderCreate<T> = T Function(ReadProvider read);
 typedef ProviderFactoryCreate<T, K> = T Function(ReadProvider read, K param);
@@ -54,7 +54,7 @@ abstract class SingleProviderBase<T> extends ProviderBase<T> implements MaybeSco
   }
 
   @nonVirtual
-  ProviderOverride<T> scope() => ProviderOverride(origin: this, override: this);
+  ProviderOverride<T> scope() => overrideWith(this);
 
   @override
   String toString() {
@@ -62,9 +62,9 @@ abstract class SingleProviderBase<T> extends ProviderBase<T> implements MaybeSco
   }
 }
 
-abstract class ProviderFactoryBase<TProvider extends FactoryProviderBase<TState, TParam>, TState,
-    TParam> extends ProviderOrFactory<TState> implements MaybeScoped {
-  final ProviderFactoryCreate<TState, TParam> create;
+abstract class ProviderFactoryBase<TProvider extends FactoryProviderBase<TValue, TParam>, TValue,
+    TParam> extends ProviderOrFactory<TValue> implements MaybeScoped {
+  final ProviderFactoryCreate<TValue, TParam> create;
   final String? debugName;
 
   ProviderFactoryBase(
@@ -76,8 +76,8 @@ abstract class ProviderFactoryBase<TProvider extends FactoryProviderBase<TState,
   TProvider call(TParam param);
 
   @nonVirtual
-  FactoryOverride<TProvider, TState, TParam> overrideWith(
-    ProviderBase<TState> Function(TParam) providerBuilder,
+  FactoryOverride<TProvider, TValue, TParam> overrideWith(
+    ProviderBase<TValue> Function(TParam) providerBuilder,
   ) {
     return FactoryOverride(
       origin: this,
@@ -86,13 +86,12 @@ abstract class ProviderFactoryBase<TProvider extends FactoryProviderBase<TState,
   }
 
   @nonVirtual
-  FactoryOverride<TProvider, TState, TParam> scope() =>
-      FactoryOverride(origin: this, override: this);
+  FactoryOverride<TProvider, TValue, TParam> scope() => overrideWith(this);
 }
 
-class FactoryProviderBase<TState, TParam> extends ProviderBase<TState> {
+class FactoryProviderBase<TValue, TParam> extends ProviderBase<TValue> {
   final TParam param;
-  final ProviderFactoryBase<FactoryProviderBase<TState, TParam>, TState, TParam> factory;
+  final ProviderFactoryBase<FactoryProviderBase<TValue, TParam>, TValue, TParam> factory;
 
   FactoryProviderBase(
     super.create, {

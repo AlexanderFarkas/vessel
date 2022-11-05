@@ -1,6 +1,6 @@
-import 'package:_common/_common.dart';
 import 'package:flutter/material.dart';
 import 'package:honeycomb_flutter/honeycomb_flutter.dart';
+import 'package:scoping/utils.dart';
 
 void main() {
   runApp(

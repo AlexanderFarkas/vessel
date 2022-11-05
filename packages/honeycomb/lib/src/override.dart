@@ -1,30 +1,30 @@
 part of 'internal_api.dart';
 
 
-class ProviderOverride<TState> extends Override {
-  final SingleProviderBase<TState> _origin;
-  final ProviderBase<TState> _override;
+class ProviderOverride<TValue> extends Override {
+  final SingleProviderBase<TValue> _origin;
+  final ProviderBase<TValue> _override;
 
   ProviderOverride(
-      {required SingleProviderBase<TState> origin, required ProviderBase<TState> override})
+      {required SingleProviderBase<TValue> origin, required ProviderBase<TValue> override})
       : _origin = origin,
         _override = override;
 }
 
-typedef FactoryOverrideFn<TState, TArg> = ProviderBase<TState> Function(TArg);
+typedef FactoryOverrideFn<TValue, TArg> = ProviderBase<TValue> Function(TArg);
 
-class FactoryOverride<TProvider extends FactoryProviderBase<TState, TParam>, TState, TParam>
+class FactoryOverride<TProvider extends FactoryProviderBase<TValue, TParam>, TValue, TParam>
     extends Override {
-  final ProviderFactoryBase<TProvider, TState, TParam> _origin;
-  final FactoryOverrideFn<TState, TParam> _override;
+  final ProviderFactoryBase<TProvider, TValue, TParam> _origin;
+  final FactoryOverrideFn<TValue, TParam> _override;
 
   FactoryOverride({
-    required ProviderFactoryBase<TProvider, TState, TParam> origin,
-    required FactoryOverrideFn<TState, TParam> override,
+    required ProviderFactoryBase<TProvider, TValue, TParam> origin,
+    required FactoryOverrideFn<TValue, TParam> override,
   })  : _origin = origin,
         _override = override;
 
-  ProviderBase<TState> getOverride(FactoryProviderBase<TState, TParam> provider) {
+  ProviderBase<TValue> getOverride(FactoryProviderBase<TValue, TParam> provider) {
     return _override(provider.param);
   }
 }

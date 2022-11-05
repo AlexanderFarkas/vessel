@@ -1,7 +1,7 @@
 part of 'internal_api.dart';
 
-class ProviderFactory<TState, TParam>
-    extends ProviderFactoryBase<FactoryProvider<TState, TParam>, TState, TParam> {
+class ProviderFactory<TValue, TParam>
+    extends ProviderFactoryBase<FactoryProvider<TValue, TParam>, TValue, TParam> {
   ProviderFactory(
     super.create, {
     required super.dispose,
@@ -9,8 +9,8 @@ class ProviderFactory<TState, TParam>
   });
 
   @override
-  FactoryProvider<TState, TParam> call(TParam param) {
-    return FactoryProvider<TState, TParam>(
+  FactoryProvider<TValue, TParam> call(TParam param) {
+    return FactoryProvider<TValue, TParam>(
       (get) => create(get, param),
       factory: this,
       debugName: debugName,

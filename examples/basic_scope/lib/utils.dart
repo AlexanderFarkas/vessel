@@ -10,7 +10,10 @@ import 'package:honeycomb_flutter/honeycomb_flutter.dart';
 
 final counterProvider = Provider(
   (_) => ValueNotifier(0),
-  dispose: (state) => state.dispose(),
+  dispose: (state) {
+    print("Dispose");
+    state.dispose();
+  },
 );
 
 

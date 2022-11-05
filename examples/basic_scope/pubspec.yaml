@@ -30,7 +30,6 @@ dependencies:
   flutter:
     sdk: flutter
     
-  _common:
   honeycomb_flutter: 
     path: ../../
 
