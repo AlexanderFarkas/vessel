@@ -23,8 +23,8 @@ final counterProvider = Provider((_) => ValueNotifier<int>(0));
 void main() {
   runApp(
     // For widgets to be able to read providers, we need to wrap the entire
-    // application in a "ProviderScope.root" widget.
-    ProviderScope.root(
+    // application in a "ProviderScope" widget.
+    ProviderScope(
       child: App(),
     )
   );
@@ -102,7 +102,7 @@ class App extends StatelessWidget {
 class SecondPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return ProviderScope(
-      scoped: [counterProvider],
+      overrides: [counterProvider.scope()],
       child: Builder(
         builder: (context) => Column(
           children: [

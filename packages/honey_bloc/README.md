@@ -131,6 +131,43 @@ counterCubitProvider.Consumer(
 )
 ```
 
+## Selector
+`Selector` is analogous to `Builder` but allows developers to filter updates by selecting a new value based on the current bloc state. Unnecessary builds are prevented if the selected value does not change. The selected value must be immutable in order for `Selector` to accurately determine whether builder should be called again.
+
+```dart
+counterCubitProvider.Selector<bool>(
+    selector: (context, state) => state % 2 == 0,
+    builder: (context, state) => Text("isEven: $state"),
+)
+```
+
+## Widgets 
+Every provider's method has it's Widget counterpart:
+* `.Builder` -> `BlocBuilder<Bloc, State>`
+* `.Listener` -> `BlocListener<Bloc, State>`
+* `.Consumer` -> `BlocConsumer<Bloc, State>`
+* `.Selector<SelectedState>` -> `BlocSelector<Bloc, State, SelectedState>`
+
+which are more suitable, if you want to define your bloc outside of `honeycomb`
+
+Example
+```dart
+class _MyAppState extends State<MyApp> {
+  final bloc = MyBloc();
+
+  void dispose() {
+    bloc.close();
+    super.dispose();
+  }
+
+  Widget build(BuildContext context) => BlocBuilder<MyBloc, MyState>(
+    bloc: bloc,
+    builder: (context, state) => // build widget tree based on state
+  );
+}
+```
+
+
 ## How to define Repositories?
 
 You could use `honeycomb`'s `Provider` for that:
@@ -155,3 +192,7 @@ Widget builder(BuildContext context) {
 
 ## How to scope, dispose and override cubits?
 Check out [`honeycomb_flutter`](https://github.com/AlexanderFarkas/honeycomb/tree/master/packages/honeycomb_flutter) documentation
+
+## Credits 
+Credits to [Felix Angelov](https://github.com/felangel) for creating such an amazing package.
+Also, I've taken several documentation pieces from [flutter_bloc](https://pub.dev/packages/flutter_bloc)
