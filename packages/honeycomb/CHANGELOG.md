@@ -1,3 +1,7 @@
+## 0.8.1
+
+ - **FEAT**: add caching to `read` call.
+
 ## 0.8.0
 
 > Note: This release has breaking changes.
