@@ -44,7 +44,10 @@ class ProviderContainer {
     }
   }
 
-  T read<T>(ProviderBase<T> provider) => _read(provider).value;
+  final readCache = <ProviderBase, dynamic>{};
+  T read<T>(ProviderBase<T> provider) {
+    return readCache[provider] ??= _read(provider).value;
+  }
 
   ReadResult<T> _read<T>(ProviderBase<T> provider) {
     if (providables.containsKey(provider)) {
