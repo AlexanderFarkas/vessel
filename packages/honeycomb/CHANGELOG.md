@@ -1,3 +1,9 @@
+## 0.9.0
+
+> Note: This release has breaking changes.
+
+ - **BREAKING** **FIX**: cleaned public api a bit.
+
 ## 0.8.1
 
  - **FEAT**: add caching to `read` call.

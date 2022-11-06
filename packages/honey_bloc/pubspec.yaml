@@ -1,7 +1,7 @@
 name: honey_bloc
 description: honeycomb wrapper for bloc package
 repository: https://github.com/AlexanderFarkas/honeycomb/tree/master/packages/honey_bloc
-version: 0.7.0
+version: 0.7.0+1
 
 environment:
   sdk: '>=2.18.1 <3.0.0'
@@ -10,7 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  honeycomb_flutter: ^0.8.0
+  honeycomb_flutter: ^0.8.0+1
   bloc: ^8.1.0
   flutter_bloc: ^8.1.1
   nested: ^1.0.0
