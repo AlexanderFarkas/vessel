@@ -2,26 +2,22 @@ part of 'internal_api.dart';
 
 ProviderBase? _circularDependencySentinel;
 
+/// Container of providers' instances
+/// It manages parent-child relationship between containers, overrides and scopes
+///
+/// {@template overrides}
+/// [overrides] is a list of providers you're willing to scope/override
+/// {@endtemplate}
+/// {@template parent}
+/// [parent] is a container, which will be explored in case [provider] either
+/// cannot be found or isntantiated.
+/// {@endtemplate}
 class ProviderContainer {
-  final ProviderContainer? parent;
-  final int depth;
-
-  /// Implementation
-  final dependencies = HashMap<MaybeScoped, DependencyNode>();
-  final providables = HashMap<ProviderBase, dynamic>();
-
-  final Set<Override> overrides;
-  late final HashMap<ProviderFactoryBase, FactoryOverride> _factoryOverrides;
-  late final HashMap<SingleProviderBase, ProviderOverride> _providerOverrides;
-
-  @internal
-  late final List<void Function()> onDispose = [];
-
+  // ignore: public_member_api_docs
   ProviderContainer({
     this.parent,
     List<Override> overrides = const [],
-  })  : overrides = overrides.toSet(),
-        depth = parent != null ? parent.depth + 1 : 0 {
+  }) : overrides = overrides.toSet() {
     final HashMap<ProviderFactoryBase, FactoryOverride> factoryOverrides = HashMap();
     final HashMap<SingleProviderBase, ProviderOverride> providerOverrides = HashMap();
 
@@ -36,22 +32,54 @@ class ProviderContainer {
     _providerOverrides = providerOverrides;
   }
 
-  final cachedShouldOverride = <ProviderBase>{};
+  /// Reads [provider]'s value from container.
+  /// If [provider]'s value hasn't been created, this function creates it and puts it in cache.
+  T read<T>(ProviderBase<T> provider) {
+    return readCache[provider] ??= _read(provider).value;
+  }
 
+  /// Disposes all providers' values, calling [dispose] function of [ProviderOrFactory]
+  /// If provider is overriden with another provider, latter [dispose] will be called.
   void dispose() {
     for (final dispose in onDispose) {
       dispose();
     }
   }
 
-  final readCache = <ProviderBase, dynamic>{};
-  T read<T>(ProviderBase<T> provider) {
-    return readCache[provider] ??= _read(provider).value;
-  }
+  /// {@macro parent}
+  @visibleForTesting
+  final ProviderContainer? parent;
 
-  ReadResult<T> _read<T>(ProviderBase<T> provider) {
+  /// 1 to 1 mapping of [provider] and its dependencies
+  /// if [provider] is present as key in [providables], it's guaranteed
+  /// that it's [provider.toScopable] is present in [dependencies].
+  @visibleForTesting
+  final dependencies = HashMap<MaybeScoped, _DependencyNode>();
+
+  /// Mapping of providers to their values
+  /// key is **NOT* overridden member, so it's essentially the one consumer uses in [read] call.
+  @visibleForTesting
+  final providables = HashMap<ProviderBase, dynamic>();
+
+  /// {@macro overrides}
+  @visibleForTesting
+  final Set<Override> overrides;
+  late final HashMap<ProviderFactoryBase, FactoryOverride> _factoryOverrides;
+  late final HashMap<SingleProviderBase, ProviderOverride> _providerOverrides;
+
+  /// List of dispose functions.
+  /// Directly used in [dispose] method.
+  @internal
+  late final List<void Function()> onDispose = [];
+
+  /// [readCache] is used to cache [_read] invocation results,
+  /// since [read]s are stable over time.
+  @visibleForTesting
+  final readCache = <ProviderBase, dynamic>{};
+
+  _ReadResult<T> _read<T>(ProviderBase<T> provider) {
     if (providables.containsKey(provider)) {
-      return ReadResult(
+      return _ReadResult(
         dependencies[provider.toScopable()]!,
         providables[provider],
       );
@@ -77,7 +105,7 @@ class ProviderContainer {
         candidate = candidate.parent!;
       }
 
-      return candidate.mountProvider(result);
+      return candidate._mountProvider(result);
     } else {
       ProviderContainer candidate = this;
       final node = host.dependencies[provider.toScopable()]!;
@@ -91,14 +119,17 @@ class ProviderContainer {
 
       if (candidate != host) {
         final result = _create(provider);
-        return candidate.mountProvider(result);
+        return candidate._mountProvider(result);
       } else {
         return host._read(provider);
       }
     }
   }
 
-  bool isScoped(DependencyNode node) {
+  /// Decides if [node] is scoped inside this container.
+  /// Essentially it checks if one of [node.provider] dependencies is present in [overrides].
+  @visibleForTesting
+  bool isScoped(_DependencyNode node) {
     final scopable = node.scopable;
     final isScopedDirectly = scopable is ProviderFactoryBase
         ? _factoryOverrides.keys.contains(scopable)
@@ -107,10 +138,10 @@ class ProviderContainer {
     return isScopedDirectly || node.dependencies.any(isScoped);
   }
 
-  CreateResult<T> _create<T>(ProviderBase<T> provider) => _circularDependencyCheck(
+  _CreateResult<T> _create<T>(ProviderBase<T> provider) => _circularDependencyCheck(
         lock: provider,
         () {
-          final dependencies = HashSet<DependencyNode>();
+          final dependencies = HashSet<_DependencyNode>();
 
           final override = _findOverride<T>(provider);
           final overrideOrProvider = override ?? provider;
@@ -121,11 +152,11 @@ class ProviderContainer {
             return result.value;
           });
 
-          return CreateResult(
+          return _CreateResult(
             origin: provider,
             override: override,
             value: value,
-            dependencyNode: DependencyNode(
+            dependencyNode: _DependencyNode(
               scopable: provider.toScopable(),
               dependencies: dependencies,
             ),
@@ -133,7 +164,7 @@ class ProviderContainer {
         },
       );
 
-  ReadResult<T> mountProvider<T>(CreateResult<T> result) {
+  _ReadResult<T> _mountProvider<T>(_CreateResult<T> result) {
     this
       ..dependencies[result.dependencyNode.scopable] = result.dependencyNode
       ..providables[result.origin] = result.value;
@@ -143,7 +174,7 @@ class ProviderContainer {
       onDispose.add(() => dispose.call(result.value));
     }
 
-    return ReadResult(result.dependencyNode, result.value);
+    return _ReadResult(result.dependencyNode, result.value);
   }
 
   ProviderBase<T>? _findOverride<T>(ProviderBase<T> provider) {
@@ -165,8 +196,8 @@ class ProviderContainer {
     return overridden as ProviderBase<T>?;
   }
 
-  CreateResult<T> _circularDependencyCheck<T>(
-    CreateResult<T> Function() create, {
+  _CreateResult<T> _circularDependencyCheck<T>(
+    _CreateResult<T> Function() create, {
     required ProviderBase<T> lock,
   }) {
     if (_circularDependencySentinel == lock) {
@@ -182,22 +213,22 @@ class ProviderContainer {
     }
   }
 
-  final cachedIsScoped = HashMap<Override, bool>();
-
+  /// Check if [provider]'s value is present inside this container.
   @visibleForTesting
   bool isPresent(ProviderBase provider) {
     return providables.containsKey(provider);
   }
 
+  /// Amount of values instantiated inside this container.
   @visibleForTesting
   int providablesLength() => providables.length;
 }
 
-class DependencyNode {
-  final Set<DependencyNode> dependencies;
+class _DependencyNode {
+  final Set<_DependencyNode> dependencies;
   final MaybeScoped scopable;
 
-  DependencyNode({
+  _DependencyNode({
     required this.dependencies,
     required this.scopable,
   });
@@ -206,25 +237,25 @@ class DependencyNode {
   int get hashCode => scopable.hashCode;
 
   @override
-  operator ==(Object? other) => other is DependencyNode && other.scopable == scopable;
+  operator ==(Object? other) => other is _DependencyNode && other.scopable == scopable;
 }
 
-class ReadResult<T> {
-  final DependencyNode node;
+class _ReadResult<T> {
+  final _DependencyNode node;
   final T value;
 
-  ReadResult(this.node, this.value);
+  _ReadResult(this.node, this.value);
 }
 
-class CreateResult<T> {
+class _CreateResult<T> {
   final ProviderBase<T> origin;
   final ProviderBase<T>? override;
   final T value;
-  final DependencyNode dependencyNode;
+  final _DependencyNode dependencyNode;
 
   ProviderBase<T> get overrideOrProvider => override ?? origin;
 
-  CreateResult({
+  _CreateResult({
     required this.origin,
     required this.override,
     required this.value,
@@ -232,46 +263,11 @@ class CreateResult<T> {
   });
 }
 
-class FindOverrideResult<T> {
-  final ProviderContainer container;
-  final ProviderBase<T>? override;
-
-  FindOverrideResult({
-    required this.container,
-    required this.override,
-  });
-}
-
-class DirectDependencyMap {
-  final _map = HashMap<MaybeScoped, Set<MaybeScoped>>();
-
-  void operator []=(ProviderBase provider, Set<MaybeScoped> dependencies) {
-    _map[scopableFromProvider(provider)] = dependencies;
-  }
-
-  Set<MaybeScoped>? operator [](ProviderBase provider) {
-    return _map[scopableFromProvider(provider)];
-  }
-
-  Set<MaybeScoped>? get(Override key) {
-    return _map[key];
-  }
-}
-
-MaybeScoped scopableFromProvider<T>(ProviderBase<T> origin) {
-  late final MaybeScoped key;
-  if (origin is FactoryProviderBase<T, dynamic>) {
-    key = origin.factory;
-  } else if (origin is SingleProviderBase<T>) {
-    key = origin;
-  } else {
-    throw UnsupportedError("message"); // fixme
-  }
-  return key;
-}
-
+/// Thrown when circular dependency is detected.
 class CircularDependencyException implements Exception {
+  /// Contains information about participants of circular dependency.
   final String message;
+  // ignore: public_member_api_docs
   CircularDependencyException(this.message);
 
   @override
