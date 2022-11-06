@@ -25,7 +25,7 @@ class App extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              counterCubitProvider.Builder(
+              counterCubitProvider.builder(
                 builder: (context, state) => Text("Count: $state"),
               ),
               SizedBox(height: 10),

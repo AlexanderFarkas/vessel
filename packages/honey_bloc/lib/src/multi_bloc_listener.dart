@@ -1,8 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:nested/nested.dart';
 
+mixin BlocListenerSingleChildMixin on SingleChildWidget {}
 class MultiBlocListener extends StatelessWidget {
-  final List<SingleChildWidget> listeners;
+  final List<BlocListenerSingleChildMixin> listeners;
   final Widget child;
   const MultiBlocListener({
     super.key,

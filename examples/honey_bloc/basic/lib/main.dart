@@ -26,7 +26,7 @@ class App extends StatelessWidget {
         body: SizedBox.expand(
           child: MultiBlocListener(
             listeners: [
-              factoriedCubitProvider.Listener(
+              factoriedCubitProvider.listener(
                 listenWhen: (previous, current) {
                   print("Prev: $previous, Curr: $current");
                   return current % 2 == 0;
@@ -38,7 +38,7 @@ class App extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                factoriedCubitProvider.Builder(
+                factoriedCubitProvider.builder(
                   builder: (context, state) => Text("Count: $state"),
                 ),
                 const SizedBox(height: 10),

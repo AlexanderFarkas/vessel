@@ -5,7 +5,7 @@ import 'package:honeycomb_flutter/honeycomb_flutter.dart';
 import 'package:nested/nested.dart';
 import 'package:meta/meta.dart';
 
-class BlocListener<B extends StateStreamable<S>, S> extends flutter_bloc.BlocListener<B, S> {
+class BlocListener<B extends StateStreamable<S>, S> extends flutter_bloc.BlocListener<B, S> with BlocListenerSingleChildMixin {
   BlocListener({
     super.key,
     required super.listener,
@@ -16,7 +16,7 @@ class BlocListener<B extends StateStreamable<S>, S> extends flutter_bloc.BlocLis
 }
 
 @internal
-class HoneycombBlocListener<B extends BlocBase<S>, S> extends SingleChildStatelessWidget {
+class HoneycombBlocListener<B extends BlocBase<S>, S> extends SingleChildStatelessWidget with BlocListenerSingleChildMixin {
   final ProviderBase<B> provider;
   final flutter_bloc.BlocWidgetListener<S> listener;
 

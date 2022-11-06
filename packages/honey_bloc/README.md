@@ -22,7 +22,7 @@ class CounterCubit extends Cubit<int> {
 void main() => runApp(
     // For widgets to be able to read providers, we need to wrap the entire
     // application in a "ProviderScope.root" widget.
-    ProviderScope.root(
+    ProviderScope(
         child: CounterApp(),
     ),
 );
@@ -44,7 +44,7 @@ class CounterPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Counter')),
-      body: counterCubitProvider.Builder(
+      body: counterCubitProvider.builder(
         builder: (context, count) => Center(child: Text('$count')),
       ),
       floatingActionButton: Column(
@@ -78,7 +78,7 @@ final counterCubitProvider = BlocProvider<CounterCubit, int>(
 ...
 
 Widget build(BuildContext context) {
-    return counterCubitProvider.Listener(
+    return counterCubitProvider.listener(
         listener: (context, state) {
             print("Counter: $state")
         },
@@ -92,12 +92,12 @@ Widget build(BuildContext context) {
 Widget build(BuildContext context) {
     return MultiBlocListener(
         listeners: [
-            counterCubitProvider.Listener(
+            counterCubitProvider.listener(
                 listener: (context, state) {
                     print("Counter: $state")
                 },
             ),
-            themeCubitProvider.Listener(
+            themeCubitProvider.listener(
                 listener: (context, state) {
                     print("Theme: $state")
                 },
@@ -143,10 +143,10 @@ counterCubitProvider.Selector<bool>(
 
 ## Widgets 
 Every provider's method has it's Widget counterpart:
-* `.Builder` -> `BlocBuilder<Bloc, State>`
-* `.Listener` -> `BlocListener<Bloc, State>`
-* `.Consumer` -> `BlocConsumer<Bloc, State>`
-* `.Selector<SelectedState>` -> `BlocSelector<Bloc, State, SelectedState>`
+* `.builder` -> `BlocBuilder<Bloc, State>`
+* `.listener` -> `BlocListener<Bloc, State>`
+* `.consumer` -> `BlocConsumer<Bloc, State>`
+* `.selector<SelectedState>` -> `BlocSelector<Bloc, State, SelectedState>`
 
 which are more suitable, if you want to define your bloc outside of `honeycomb`
 
@@ -184,7 +184,7 @@ final userProfileCubitProvider = BlocProvider.factory<UserProfileCubit, User, in
 ...
 
 Widget builder(BuildContext context) {
-    return userProfileCubitProvider(1).Builder(
+    return userProfileCubitProvider(1).builder(
         builder: (context, state) => Text("username: ${state.name}"),
     );
 } 
