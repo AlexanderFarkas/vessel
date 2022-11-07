@@ -1,3 +1,7 @@
+## 0.7.0+2
+
+ - **DOCS**: updated methods naming to reflect changes in the api.
+
 ## 0.7.0+1
 
  - Update a dependency to the latest release.
