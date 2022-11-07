@@ -111,7 +111,7 @@ Widget build(BuildContext context) {
 ### Filter states
 If we want to trigger listener only when `counter`'s state is even:
 ```dart
-counterCubitProvider.Listener(
+counterCubitProvider.listener(
     listenWhen: (previousState, currentState) => currentState % 2 == 0,
     listener: (context, state) {
         print("Counter: $state")
@@ -119,9 +119,9 @@ counterCubitProvider.Listener(
 ),
 ```
 
-## Consumer - combine Builder and Listener into single widget
+## Consumer - combine `builder` and `listener` into single widget
 ```dart
-counterCubitProvider.Consumer(
+counterCubitProvider.consumer(
     listenWhen: (previousState, currentState) => currentState % 2 == 0,
     listener: (context, state) {
         print("Counter: $state")
@@ -132,10 +132,10 @@ counterCubitProvider.Consumer(
 ```
 
 ## Selector
-`Selector` is analogous to `Builder` but allows developers to filter updates by selecting a new value based on the current bloc state. Unnecessary builds are prevented if the selected value does not change. The selected value must be immutable in order for `Selector` to accurately determine whether builder should be called again.
+`selector` is analogous to `builder` but allows developers to filter updates by selecting a new value based on the current bloc state. Unnecessary builds are prevented if the selected value does not change. The selected value must be immutable in order for `selector` to accurately determine whether builder should be called again.
 
 ```dart
-counterCubitProvider.Selector<bool>(
+counterCubitProvider.selector<bool>(
     selector: (context, state) => state % 2 == 0,
     builder: (context, state) => Text("isEven: $state"),
 )
