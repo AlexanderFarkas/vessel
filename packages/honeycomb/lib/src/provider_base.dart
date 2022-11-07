@@ -8,20 +8,20 @@ typedef ProviderFactoryCreate<T, K> = T Function(ReadProvider read, K param);
 /// Indicates that entity can be scoped or overriden
 abstract class MaybeScoped {}
 
-/// Base class for all possible overrides
+// ignore: public_member_api_docs
 abstract class Override {}
 
-/// Base class for both providers and factories
-abstract class ProviderOrFactory<T> {
-  /// Decides how to dispose values produces by this [ProviderOrFactory]
-  final Dispose<T>? dispose;
+// ignore: public_member_api_docs
+abstract class ProviderOrFactory<TValue> {
+  /// Decides how to dispose values produced
+  final Dispose<TValue>? dispose;
   // ignore: public_member_api_docs
   ProviderOrFactory({required this.dispose});
 }
 
 /// Base class for all providers
-abstract class ProviderBase<T> extends ProviderOrFactory<T> with _DebugMixin {
-  final ProviderCreate<T> create;
+abstract class ProviderBase<TValue> extends ProviderOrFactory<TValue> with _DebugMixin {
+  final ProviderCreate<TValue> create;
 
   @override
   final String? debugName;
@@ -29,12 +29,12 @@ abstract class ProviderBase<T> extends ProviderOrFactory<T> with _DebugMixin {
   ProviderBase(
     this.create, {
     required this.debugName,
-    required Dispose<T>? dispose,
+    required Dispose<TValue>? dispose,
   }) : super(dispose: dispose);
 
   @internal
   MaybeScoped toScopable() {
-    if (this is FactoryProviderBase<T, dynamic>) {
+    if (this is FactoryProviderBase<TValue, dynamic>) {
       return (this as FactoryProviderBase).factory;
     } else if (this is SingleProviderBase) {
       return this as SingleProviderBase;
@@ -66,7 +66,7 @@ abstract class SingleProviderBase<T> extends ProviderBase<T> implements MaybeSco
   ///   parent: rootContainer,
   ///   overrides: [myProvider.overrideWith(anotherProvider)],
   /// );
-  /// 
+  ///
   /// rootContainer.read(myProvider) // myProviderInstance#1
   /// container.read(myProvider) // anotherProviderInstance#1
   /// ```
@@ -78,7 +78,7 @@ abstract class SingleProviderBase<T> extends ProviderBase<T> implements MaybeSco
     );
   }
 
-  /// Creates self-override, which means [provider]'s value will be recreated and scoped 
+  /// Creates self-override, which means [provider]'s value will be recreated and scoped
   /// inside container, owning this override
   /// ```dart
   /// final rootContainer = ProviderContainer();
@@ -86,7 +86,7 @@ abstract class SingleProviderBase<T> extends ProviderBase<T> implements MaybeSco
   ///   parent: rootContainer,
   ///   overrides: [myProvider.scoped()],
   /// );
-  /// 
+  ///
   /// rootContainer.read(myProvider) // instance#1
   /// container.read(myProvider) // instance#2
   /// ```
