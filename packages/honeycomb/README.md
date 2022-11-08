@@ -1,4 +1,4 @@
-Service Locator for Dart and Flutter
+IoC-Container for Dart and Flutter
 
 ### Navigation
 - [How is it different from Riverpod?](#how-is-it-different-from-riverpod)

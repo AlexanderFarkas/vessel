@@ -35,7 +35,7 @@ class ProviderContainer {
   /// Reads [provider]'s value from container.
   /// If [provider]'s value hasn't been created, this function creates it and puts it in cache.
   T read<T>(ProviderBase<T> provider) {
-    return readCache[provider] ??= _read(provider).value;
+    return _readCache[provider] ??= _read(provider).value;
   }
 
   /// Disposes all providers' values, calling [dispose] function of [ProviderOrFactory]
@@ -72,10 +72,9 @@ class ProviderContainer {
   @internal
   late final List<void Function()> onDispose = [];
 
-  /// [readCache] is used to cache [_read] invocation results,
+  /// [_readCache] is used to cache [_read] invocation results,
   /// since [read]s are stable over time.
-  @visibleForTesting
-  final readCache = <ProviderBase, dynamic>{};
+  final _readCache = <ProviderBase, dynamic>{};
 
   _ReadResult<T> _read<T>(ProviderBase<T> provider) {
     if (providables.containsKey(provider)) {
@@ -99,7 +98,7 @@ class ProviderContainer {
       ProviderContainer candidate = this;
 
       while (candidate.parent != null) {
-        if (candidate.isScoped(result.dependencyNode)) {
+        if (candidate._isScoped(result.dependencyNode)) {
           break;
         }
         candidate = candidate.parent!;
@@ -110,7 +109,7 @@ class ProviderContainer {
       ProviderContainer candidate = this;
       final node = host.dependencies[provider.toScopable()]!;
       while (candidate != host) {
-        if (candidate.isScoped(node)) {
+        if (candidate._isScoped(node)) {
           break;
         }
 
@@ -128,14 +127,13 @@ class ProviderContainer {
 
   /// Decides if [node] is scoped inside this container.
   /// Essentially it checks if one of [node.provider] dependencies is present in [overrides].
-  @visibleForTesting
-  bool isScoped(_DependencyNode node) {
+  bool _isScoped(_DependencyNode node) {
     final scopable = node.scopable;
     final isScopedDirectly = scopable is ProviderFactoryBase
         ? _factoryOverrides.keys.contains(scopable)
         : _providerOverrides.keys.contains(scopable);
 
-    return isScopedDirectly || node.dependencies.any(isScoped);
+    return isScopedDirectly || node.dependencies.any(_isScoped);
   }
 
   _CreateResult<T> _create<T>(ProviderBase<T> provider) => _circularDependencyCheck(
