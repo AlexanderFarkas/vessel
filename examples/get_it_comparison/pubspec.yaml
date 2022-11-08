@@ -1,6 +1,7 @@
 name: comparison
 description: A sample command-line application.
 version: 1.0.0
+publish_to: 'none'
 # homepage: https://www.example.com
 
 environment:
@@ -14,4 +15,4 @@ dev_dependencies:
   test: ^1.16.0
 dependencies:
   get_it: ^7.2.0
-  honeycomb: ^0.9.0+1
+  honeycomb: ^0.9.1
