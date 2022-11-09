@@ -31,6 +31,10 @@ class Provider<T> extends SingleProviderBase<T> {
           debugName: debugName,
         );
 
+  /// Creates provider factory.
+  ///
+  /// Calling `provider(param)` returns new provider, which can be read
+  /// Example: `container.read(provider(param))`
   static ProviderFactory<T, K> factory<T, K>(
     ProviderFactoryCreate<T, K> create, {
     Dispose<T>? dispose,
