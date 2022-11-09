@@ -1,3 +1,7 @@
+## 0.9.1+1
+
+ - **DOCS**: added dart doc.
+
 ## 0.9.1
 
  - **FEAT**: added more docs and get_it comparison.
