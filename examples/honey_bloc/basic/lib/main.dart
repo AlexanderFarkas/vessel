@@ -11,6 +11,7 @@ class CounterCubit extends Cubit<int> {
   CounterCubit(super.initialState);
 
   void increment() {
+    
     return emit(state + 1);
   }
 }
