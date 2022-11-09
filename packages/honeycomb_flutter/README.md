@@ -2,135 +2,76 @@ Honeycomb for Flutter
 
 For more information about DI itself see [honeycomb](https://github.com/AlexanderFarkas/honeycomb/tree/master/packages/honeycomb)
 
-
-### Navigation
-- [Features](#features)
-- [Getting started](#getting-started)
-- [Usage](#usage)
-  - [How to read a provider?](#how-to-read-a-provider)
-  - [Scoping](#scoping)
-
-## Features
-
-- Inject your providers via context
-- Share scoped providers across multiple routes
-
 ## Getting started
 
+Wrap your app in `ProviderScope` widget:
 ```dart
-final counterProvider = Provider((_) => ValueNotifier<int>(0));
-
 void main() {
   runApp(
-    // For widgets to be able to read providers, we need to wrap the entire
-    // application in a "ProviderScope" widget.
-    ProviderScope(
-      child: App(),
-    )
+    ProviderScope(child: App())
   );
 }
-
-class App extends StatelessWidget {
-  Widget build(BuildContext) {
-    return Column(
-      children: [
-        ValueListenableBuilder(
-          valueListenable: counterProvider.of(context, listen: true),
-          builder: (_, value, __) => Text("Count: $value"),
-        ),
-        OutlinedButton(
-          onPressed: () {
-            counterProvider.of(context).value++;
-          },
-          child: Text("Increment"),
-        )
-      ]
-    );
-  }
-}
 ```
 
-## Usage
-
-### How to read a provider?
-If you're reading a provider inside build method, use:
+Read your providers with `of` extension method:
 ```dart
-myProvider.of(context, listen: true); 
-```
-
-Remark: *You wouldn't need `listen: true` very often.
-You should either use `honeybloc` package or write your own wrapper, depending on state management you use.*
-
-In most cases (lifecycle method, callbacks) you should use it like:
-```
-myProvider.of(context);
-```
-
-### Scoping
-
-You could introduce scopes to create and dispose your providers together with its widget trees.
-
-```dart
-final counterProvider = Provider(
-  (_) => ValueNotifier<int>(0),
-  dispose: (vn) {
-    vn.dispose();
-    print("Dispose");
-  },
+GestureDetector(
+  onTap: () => myProvider.of(context).doSomething()
+  child: ...
 );
-
-
-class App extends StatelessWidget {
-  Widget build(BuildContext) {
-    return Column(
-      children: [
-        ValueListenableBuilder(
-          valueListenable: counterProvider.of(context, listen: true),
-          builder: (_, value, __) => Text("Count: $value"),
-        ),
-        OutlinedButton(
-          onPressed: () {
-            counterProvider.of(context).value++;
-          },
-          child: Text("Increment"),
-        )
-      ]
-    );
-  }
-}
-
-class SecondPage extends StatelessWidget {
-  Widget build(BuildContext context) {
-    return ProviderScope(
-      overrides: [counterProvider.scope()],
-      child: Builder(
-        builder: (context) => Column(
-          children: [
-            ValueListenableBuilder(
-              valueListenable: counterProvider.of(
-                context, 
-                listen: true,
-              ),
-              builder: (_, value, __) => Text("Count: $value"),
-            ),
-            OutlinedButton(
-              onPressed: () {
-                counterProvider.of(context).value++;
-              },
-              child: Text("Increment"),
-            )
-          ]
-        )
-      )
-    );
-  }
-}
 ```
 
-Now, everytime you pop and push `SecondPage` its counter will be recreated. Also you will see "Dispose" in console.
+Each `ProviderScope` introduces new `ProviderContainer`, which becomes child of the previous container.
+When `ProviderScope` widget disposes, it disposes `ProviderContainer` with it.
 
-Global counter will remain unctouched.
+## Overriding and scoping
 
-To test it yourself see [scoping example](https://github.com/AlexanderFarkas/honeycomb/tree/master/examples/basic_scope)
+It's possible to override provider with another one:
+```dart
+ProviderScope(
+  overrides: [
+    myProvider.overrideWith(anotherProvider),
+  ],
+  child: ...
+)
+```
+
+Or just scope it:
+```dart
+ProviderScope(
+  overrides: [
+    myProvider.scope(),
+  ],
+  child: ...
+)
+```
+
+## Pass parent
+
+`ProviderScope` takes its parent from the `BuildContext`. But you could override it with `parent` constructor parameter. 
+
+It could be useful with dialogs:
+```dart
+ProviderScope(
+  overrides: [myVmProvider.scoped()]
+  child: Builder(
+    builder: (context) => GestureDetector(
+      onTap: () {
+        final container = UncontrolledProviderScope.of(context);
+        showAlertDialog(
+          builder: (context) => ProviderScope(
+            parent: container,
+            child: ...
+          )
+        )
+      }, 
+      child: ...
+    )
+  )
+)
+```
+
+Now your dialog will receive all scoped providers from the parent screen. 
+
 
 

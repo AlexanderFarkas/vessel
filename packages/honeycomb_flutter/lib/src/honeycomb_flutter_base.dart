@@ -4,11 +4,13 @@ import 'package:honeycomb/honeycomb.dart';
 
 class ProviderScope extends StatefulWidget {
   final List<Override> overrides;
+  final ProviderContainer? parent;
   final Widget child;
   const ProviderScope({
     Key? key,
     this.overrides = const [],
     required this.child,
+    this.parent,
   }) : super(key: key);
 
   @override
@@ -21,7 +23,7 @@ class _ProviderScopeState extends State<ProviderScope> {
   @override
   void initState() {
     super.initState();
-    final parent = UncontrolledProviderScope._of(context, listen: false);
+    final parent = widget.parent ?? UncontrolledProviderScope._of(context, listen: false);
     _container = ProviderContainer(overrides: widget.overrides, parent: parent);
   }
 
@@ -73,8 +75,6 @@ class UncontrolledProviderScope extends InheritedWidget {
 }
 
 extension ProviderContextExtension<T> on ProviderBase<T> {
-  // You should listen in your own state management wrappers.
-  // E.g. in self-made BlocBuilder
   T of(BuildContext context, {bool listen = false}) {
     return UncontrolledProviderScope.of(context, listen: listen).read(this);
   }
