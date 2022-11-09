@@ -1,10 +1,5 @@
 class UserRepository {
-  static const database = {
-    0: "Alex",
-    1: "Barry",
-    2: "Connan",
-    3: "Garry"
-  };
+  static const database = {0: "Alex", 1: "Barry", 2: "Connan", 3: "Garry"};
 
   String usernameById(int userId) {
     return database[userId] ?? "Not found";

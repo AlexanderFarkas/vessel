@@ -20,7 +20,8 @@ abstract class ProviderOrFactory<TValue> {
 }
 
 /// Base class for all providers
-abstract class ProviderBase<TValue> extends ProviderOrFactory<TValue> with _DebugMixin {
+abstract class ProviderBase<TValue> extends ProviderOrFactory<TValue>
+    with _DebugMixin {
   final ProviderCreate<TValue> create;
 
   @override
@@ -50,7 +51,8 @@ abstract class ProviderBase<TValue> extends ProviderOrFactory<TValue> with _Debu
 /// ```dart
 /// final myProvider = Provider((read) => MySingleton());
 /// ```
-abstract class SingleProviderBase<T> extends ProviderBase<T> implements MaybeScoped {
+abstract class SingleProviderBase<T> extends ProviderBase<T>
+    implements MaybeScoped {
   // ignore: public_member_api_docs
   SingleProviderBase(
     super.create, {
@@ -99,7 +101,9 @@ abstract class SingleProviderBase<T> extends ProviderBase<T> implements MaybeSco
   }
 }
 
-abstract class ProviderFactoryBase<TProvider extends FactoryProviderBase<TValue, TParam>, TValue,
+abstract class ProviderFactoryBase<
+    TProvider extends FactoryProviderBase<TValue, TParam>,
+    TValue,
     TParam> extends ProviderOrFactory<TValue> implements MaybeScoped {
   final ProviderFactoryCreate<TValue, TParam> create;
   final String? debugName;
@@ -128,7 +132,8 @@ abstract class ProviderFactoryBase<TProvider extends FactoryProviderBase<TValue,
 
 class FactoryProviderBase<TValue, TParam> extends ProviderBase<TValue> {
   final TParam param;
-  final ProviderFactoryBase<FactoryProviderBase<TValue, TParam>, TValue, TParam> factory;
+  final ProviderFactoryBase<FactoryProviderBase<TValue, TParam>, TValue, TParam>
+      factory;
 
   FactoryProviderBase(
     super.create, {
@@ -143,7 +148,9 @@ class FactoryProviderBase<TValue, TParam> extends ProviderBase<TValue> {
 
   @override
   bool operator ==(Object other) {
-    return other is FactoryProviderBase && other.factory == factory && other.param == param;
+    return other is FactoryProviderBase &&
+        other.factory == factory &&
+        other.param == param;
   }
 
   @override
@@ -154,7 +161,8 @@ class FactoryProviderBase<TValue, TParam> extends ProviderBase<TValue> {
 
 mixin _DebugMixin {
   abstract final String? debugName;
-  String get _debugString => "(${debugName != null ? '$debugName:' : ''}${_shortHash(this)})";
+  String get _debugString =>
+      "(${debugName != null ? '$debugName:' : ''}${_shortHash(this)})";
 
   String _shortHash(Object? object) {
     return object.hashCode.toUnsigned(20).toRadixString(16).padLeft(5, '0');

@@ -1,7 +1,7 @@
 part of 'internal_api.dart';
 
-class ProviderFactory<TValue, TParam>
-    extends ProviderFactoryBase<FactoryProvider<TValue, TParam>, TValue, TParam> {
+class ProviderFactory<TValue, TParam> extends ProviderFactoryBase<
+    FactoryProvider<TValue, TParam>, TValue, TParam> {
   ProviderFactory(
     super.create, {
     required super.dispose,

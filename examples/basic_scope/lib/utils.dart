@@ -6,8 +6,6 @@ library _common;
 import 'package:flutter/material.dart';
 import 'package:honeycomb_flutter/honeycomb_flutter.dart';
 
-
-
 final counterProvider = Provider(
   (_) => ValueNotifier(0),
   dispose: (state) {
@@ -15,7 +13,6 @@ final counterProvider = Provider(
     state.dispose();
   },
 );
-
 
 class Incrementer extends StatelessWidget {
   final String title;

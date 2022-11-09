@@ -23,7 +23,6 @@ class ValueNotifierProvider<T> extends Provider<ValueNotifier<T>> {
           debugName: debugName,
         );
 
-
   // ignore: non_constant_identifier_names
   Widget Builder({
     required ValueWidgetBuilder<T> builder,

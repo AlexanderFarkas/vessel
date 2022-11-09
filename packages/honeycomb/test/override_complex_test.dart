@@ -53,14 +53,15 @@ void main() {
   final cubitProvider = Provider((read) => Cubit(read(repositoryProvider)));
 
   test("New dependency from override is correcly placed in root", () {
-    final root =
-        ProviderContainer(overrides: [repositoryProvider.overrideWith(httpRepositoryProvider)]);
+    final root = ProviderContainer(
+        overrides: [repositoryProvider.overrideWith(httpRepositoryProvider)]);
 
     root.read(repositoryProvider);
     expect(root.providables.containsKey(httpDataSourceProvider), isTrue);
 
     final child = ProviderContainer(
-        parent: root, overrides: [repositoryProvider.overrideWith(dbRepositoryProvider)]);
+        parent: root,
+        overrides: [repositoryProvider.overrideWith(dbRepositoryProvider)]);
 
     child.read(repositoryProvider);
     expect(root.providables.containsKey(dbDataSourceProvider), isTrue);
@@ -74,8 +75,8 @@ void main() {
       overrides: [repositoryProvider.overrideWith(httpRepositoryProvider)],
     );
 
-    final hiveDataSourceProvider =
-        Provider<DatabaseSpecificDataSource>((read) => HiveDatabaseSpecificDataSource());
+    final hiveDataSourceProvider = Provider<DatabaseSpecificDataSource>(
+        (read) => HiveDatabaseSpecificDataSource());
 
     root.read(cubitProvider);
 
@@ -91,7 +92,8 @@ void main() {
 
     final cubit = child2.read(cubitProvider);
     expect(cubit.repository, isA<DatabaseRepositoryImpl>());
-    expect((cubit.repository as DatabaseRepositoryImpl).db, isA<HiveDatabaseSpecificDataSource>());
+    expect((cubit.repository as DatabaseRepositoryImpl).db,
+        isA<HiveDatabaseSpecificDataSource>());
 
     expect(root.providables.length, equals(4));
     expect(child.providables.length, equals(1));

@@ -23,10 +23,10 @@ void overrideHoneycomb() {
   final repository = childContainer.read(userRepositoryProvider);
   print(repository.usernameById(1)); // Mock
 
-  /// It's useful in UI, since not all parts of your app 
+  /// It's useful in UI, since not all parts of your app
   /// need access to the overriden/scoped version of the provider.
-  /// 
-  /// Providing overriden version to a subtree is pretty usefull in Flutter, 
+  ///
+  /// Providing overriden version to a subtree is pretty usefull in Flutter,
   /// rest of the app will still be using the root one
   final rootVm = rootContainer.read(userViewModelProvider(1));
   rootVm.sayHello(); // Hello, Barry
@@ -43,6 +43,6 @@ void overrideGetIt() {
   final repository = getIt.get<UserRepository>();
   print(repository.usernameById(1)); // Mock
 
-  /// As far as I know, 
+  /// As far as I know,
   /// it's not possible to use root scope without popping the current.
 }

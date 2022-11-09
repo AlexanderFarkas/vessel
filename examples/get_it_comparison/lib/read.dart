@@ -8,9 +8,9 @@ void readHoneycomb() {
   /// fails to compile, since "random_uuid" is not subtype of int
   // final vm = container.read(userViewModelProvider("random_uuid"));
 
-  /// you cannot forget to register userViewModelProvider, 
+  /// you cannot forget to register userViewModelProvider,
   /// since it's "registered" at compile-time
-  final vm = container.read(userViewModelProvider(1)); 
+  final vm = container.read(userViewModelProvider(1));
   vm.sayHello(); // Hello, Barry
 }
 
@@ -19,11 +19,11 @@ void readGetIt() {
   // getIt.get<UserViewModel>(param1: 1);
 
   /// You may fail to pass param1, error at runtime
-  // getIt.get<UserViewModel>(); 
+  // getIt.get<UserViewModel>();
 
   /// You may pass the wrong type, error at runtime
   /// getIt.get<UserViewModel>(param1: "random_uuid");
-  
+
   final vm = getIt.get<UserViewModel>(param1: 1);
   vm.sayHello(); // Hello, Barry
 }

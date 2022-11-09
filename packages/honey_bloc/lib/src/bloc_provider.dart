@@ -33,8 +33,8 @@ class BlocProvider<B extends BlocBase<S>, S> extends SingleProviderBase<B>
       );
 }
 
-class FactoryBlocProvider<B extends BlocBase<S>, S, TParam> extends FactoryProviderBase<B, TParam>
-    with BlocBindingMixin<B, S> {
+class FactoryBlocProvider<B extends BlocBase<S>, S, TParam>
+    extends FactoryProviderBase<B, TParam> with BlocBindingMixin<B, S> {
   FactoryBlocProvider(
     super.create, {
     required super.factory,
@@ -46,7 +46,8 @@ class FactoryBlocProvider<B extends BlocBase<S>, S, TParam> extends FactoryProvi
 
 class BlocProviderFactory<B extends BlocBase<S>, S, K>
     extends ProviderFactoryBase<FactoryBlocProvider<B, S, K>, B, K> {
-  BlocProviderFactory(super.create, {required super.dispose, required super.debugName});
+  BlocProviderFactory(super.create,
+      {required super.dispose, required super.debugName});
 
   @override
   FactoryBlocProvider<B, S, K> call(K param) {

@@ -3,7 +3,8 @@ import 'package:honeycomb_flutter/honeycomb_flutter.dart';
 
 import 'package:honey_bloc/honey_bloc.dart';
 
-final counterCubitProvider = BlocProvider<CounterCubit, int>((_) => CounterCubit(0));
+final counterCubitProvider =
+    BlocProvider<CounterCubit, int>((_) => CounterCubit(0));
 
 class CounterCubit extends Cubit<int> {
   CounterCubit(super.initialState);
@@ -30,7 +31,8 @@ class App extends StatelessWidget {
               ),
               SizedBox(height: 10),
               OutlinedButton(
-                onPressed: counterCubitProvider.of(context, listen: true).increment,
+                onPressed:
+                    counterCubitProvider.of(context, listen: true).increment,
                 child: Text("Increment"),
               ),
             ],

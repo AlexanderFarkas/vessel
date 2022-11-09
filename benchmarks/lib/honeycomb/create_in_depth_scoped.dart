@@ -67,7 +67,8 @@ void _benchmark({
   final elapsed = watch.elapsedMicroseconds;
 
   printer.addResult(
-    description: 'create provider with scoped transitive dependency and depth == $depth',
+    description:
+        'create provider with scoped transitive dependency and depth == $depth',
     value: elapsed * scale,
     unit: 'ns per iteration',
     name: 'create_scoped$depth',

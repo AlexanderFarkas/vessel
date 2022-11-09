@@ -60,7 +60,8 @@ void _benchmark({
     }
 
     final _container = ProviderContainer();
-    final _container2 = ProviderContainer(parent: _container, overrides: [providers[40]]);
+    final _container2 =
+        ProviderContainer(parent: _container, overrides: [providers[40]]);
     final container = ProviderContainer(parent: _container2, overrides: []);
 
     watch.start();
@@ -71,7 +72,8 @@ void _benchmark({
   final elapsed = watch.elapsedMicroseconds;
 
   printer.addResult(
-    description: 'create provider with scoped transitive dependency and depth == $depth',
+    description:
+        'create provider with scoped transitive dependency and depth == $depth',
     value: elapsed * scale,
     unit: 'ns per iteration',
     name: 'create_scoped$depth',

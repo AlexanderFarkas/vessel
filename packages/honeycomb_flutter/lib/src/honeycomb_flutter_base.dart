@@ -23,7 +23,8 @@ class _ProviderScopeState extends State<ProviderScope> {
   @override
   void initState() {
     super.initState();
-    final parent = widget.parent ?? UncontrolledProviderScope._of(context, listen: false);
+    final parent =
+        widget.parent ?? UncontrolledProviderScope._of(context, listen: false);
     _container = ProviderContainer(overrides: widget.overrides, parent: parent);
   }
 
@@ -57,9 +58,12 @@ class UncontrolledProviderScope extends InheritedWidget {
 
   static ProviderContainer? _of(BuildContext context, {required bool listen}) {
     final scope = (listen
-            ? context.dependOnInheritedWidgetOfExactType<UncontrolledProviderScope>()
-            : context.getElementForInheritedWidgetOfExactType<UncontrolledProviderScope>()?.widget)
-        as UncontrolledProviderScope?;
+        ? context
+            .dependOnInheritedWidgetOfExactType<UncontrolledProviderScope>()
+        : context
+            .getElementForInheritedWidgetOfExactType<
+                UncontrolledProviderScope>()
+            ?.widget) as UncontrolledProviderScope?;
 
     return scope?.container;
   }
