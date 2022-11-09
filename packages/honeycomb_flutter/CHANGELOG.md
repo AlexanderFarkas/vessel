@@ -1,3 +1,7 @@
+## 0.8.1
+
+ - **FEAT**: ability to provider parent.
+
 ## 0.8.0+3
 
  - Update a dependency to the latest release.

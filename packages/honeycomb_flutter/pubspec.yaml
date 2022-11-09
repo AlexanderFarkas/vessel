@@ -1,6 +1,6 @@
 name: honeycomb_flutter
 description: honeycomb for Flutter
-version: 0.8.0+3
+version: 0.8.1
 repository: https://github.com/AlexanderFarkas/honeycomb/tree/master/packages/honeycomb_flutter
 
 environment:
