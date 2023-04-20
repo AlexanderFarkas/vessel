@@ -3,7 +3,7 @@ description: >-
   IoC-Container written in pure Dart with Flutter in mind.
   Provides compile-time checks, typed factories, scoping and much more.
 version: 1.0.0
-repository: https://github.com/AlexanderFarkas/vessel/tree/master/packages/vessel
+repository: https://github.com/AlexanderFarkas/vessel/tree/main/packages/vessel
 
 environment:
   sdk: '>=2.17.6 <3.0.0'

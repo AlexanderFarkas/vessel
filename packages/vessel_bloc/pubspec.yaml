@@ -1,6 +1,6 @@
 name: vessel_bloc
 description: vessel wrapper for bloc package
-repository: https://github.com/AlexanderFarkas/vessel/tree/master/packages/vessel_bloc
+repository: https://github.com/AlexanderFarkas/vessel/tree/main/packages/vessel_bloc
 version: 1.0.0
 
 environment:

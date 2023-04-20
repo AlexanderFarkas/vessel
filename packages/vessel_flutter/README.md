@@ -1,6 +1,6 @@
 vessel for Flutter
 
-For more information about DI itself see [vessel](https://github.com/AlexanderFarkas/vessel/tree/master/packages/vessel)
+For more information about DI itself see [vessel](https://github.com/AlexanderFarkas/vessel/tree/main/packages/vessel)
 
 ## Getting started
 

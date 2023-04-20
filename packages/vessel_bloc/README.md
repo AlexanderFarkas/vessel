@@ -191,7 +191,7 @@ Widget builder(BuildContext context) {
 ```
 
 ## How to scope, dispose and override cubits?
-Check out [`vessel_flutter`](https://github.com/AlexanderFarkas/vessel/tree/master/packages/vessel_flutter) documentation
+Check out [`vessel_flutter`](https://github.com/AlexanderFarkas/vessel/tree/main/packages/vessel_flutter) documentation
 
 ## Credits 
 Credits to [Felix Angelov](https://github.com/felangel) for creating such an amazing package.

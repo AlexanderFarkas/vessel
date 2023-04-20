@@ -1,7 +1,7 @@
 name: vessel_flutter
 description: vessel for Flutter
 version: 1.0.0
-repository: https://github.com/AlexanderFarkas/vessel/tree/master/packages/vessel_flutter
+repository: https://github.com/AlexanderFarkas/vessel/tree/main/packages/vessel_flutter
 
 environment:
   sdk: '>=2.17.6 <3.0.0'
