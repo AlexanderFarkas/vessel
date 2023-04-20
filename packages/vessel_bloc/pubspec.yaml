@@ -1,0 +1,23 @@
+name: vessel_bloc
+description: vessel wrapper for bloc package
+repository: https://github.com/AlexanderFarkas/vessel/tree/master/packages/vessel_bloc
+version: 1.0.0
+
+environment:
+  sdk: '>=2.18.1 <3.0.0'
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  vessel_flutter: ^0.8.1+1
+  bloc: ^8.1.0
+  flutter_bloc: ^8.1.1
+  nested: ^1.0.0
+  meta: ^1.8.0
+  
+dev_dependencies:
+  lints: ^2.0.0
+  test: ^1.16.0
+  flutter_test:
+    sdk: flutter

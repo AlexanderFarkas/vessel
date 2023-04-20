@@ -1,0 +1,12 @@
+name: vessel
+repository: https://github.com/AlexanderFarkas/vessel
+
+packages:
+  - packages/**
+  - examples/**
+  
+scripts:
+  test:
+    exec: dart test
+    packageFilters:
+      dirExists: test

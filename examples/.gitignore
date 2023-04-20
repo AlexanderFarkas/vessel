@@ -1,0 +1,9 @@
+# You can regenerate them with flutter create
+**/ios
+**/linux
+**/macos
+**/android
+**/web
+**/windows
+**/.metadata
+**/test

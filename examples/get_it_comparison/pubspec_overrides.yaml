@@ -1,0 +1,4 @@
+# melos_managed_dependency_overrides: vessel
+dependency_overrides:
+  vessel:
+    path: ../../packages/vessel
