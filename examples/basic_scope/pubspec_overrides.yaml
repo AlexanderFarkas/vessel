@@ -1,6 +1,0 @@
-# melos_managed_dependency_overrides: vessel,vessel_flutter
-dependency_overrides:
-  vessel:
-    path: ../../packages/vessel
-  vessel_flutter:
-    path: ../../packages/vessel_flutter
