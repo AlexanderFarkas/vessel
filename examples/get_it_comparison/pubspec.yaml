@@ -15,4 +15,4 @@ dev_dependencies:
   test: ^1.16.0
 dependencies:
   get_it: ^7.2.0
-  vessel: ^0.9.1+1
+  vessel: ^2.0.0
