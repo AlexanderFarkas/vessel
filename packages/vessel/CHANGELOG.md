@@ -1,3 +1,10 @@
+## 3.0.0
+
+> Note: This release has breaking changes.
+
+ - **BREAKING** **FEAT**: add adapters.
+ - **BREAKING** **FEAT**: upgrade to Dart 3.
+
 ## 2.0.0
 
 > Note: This release has breaking changes.
