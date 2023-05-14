@@ -5,24 +5,24 @@ import 'package:vessel_flutter/vessel_flutter.dart';
 import 'package:nested/nested.dart';
 import 'package:meta/meta.dart';
 
-class BlocListener<B extends StateStreamable<S>, S> extends flutter_bloc.BlocListener<B, S>
-    with BlocListenerSingleChildMixin {
+class BlocListener<TBloc extends StateStreamable<TState>, TState>
+    extends flutter_bloc.BlocListener<TBloc, TState> with BlocListenerSingleChildMixin {
   BlocListener({
     super.key,
     required super.listener,
-    required B super.bloc,
+    required TBloc super.bloc,
     super.listenWhen,
     super.child,
   });
 }
 
 @internal
-class VesselBlocListener<B extends BlocBase<S>, S> extends SingleChildStatelessWidget
+class VesselBlocListener<TBloc extends BlocBase<TState>, TState> extends SingleChildStatelessWidget
     with BlocListenerSingleChildMixin {
-  final ProviderBase<B> provider;
-  final flutter_bloc.BlocWidgetListener<S> listener;
+  final ProviderBase<TBloc> provider;
+  final flutter_bloc.BlocWidgetListener<TState> listener;
 
-  final flutter_bloc.BlocListenerCondition<S>? listenWhen;
+  final flutter_bloc.BlocListenerCondition<TState>? listenWhen;
 
   VesselBlocListener({
     required super.key,

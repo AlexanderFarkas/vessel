@@ -9,28 +9,20 @@ import 'package:vessel_flutter/vessel_flutter.dart';
 
 import '../vessel_bloc.dart';
 
-class BlocProvider<B extends BlocBase<S>, S> extends SingleProviderBase<B>
-    with BlocBindingMixin<B, S> {
-  BlocProvider(ProviderCreate<B> create, {String? debugName})
+class BlocProvider<TBloc extends BlocBase<TState>, TState> extends SingleProviderBase<TBloc>
+    with BlocBindingMixin<TBloc, TState> {
+  BlocProvider(ProviderCreate<TBloc> create, {String? debugName})
       : super(
           create,
           dispose: (bloc) => bloc.close(),
           debugName: debugName,
         );
 
-  static BlocProviderFactory<B, S, K> factory<B extends BlocBase<S>, S, K>(
-    ProviderFactoryCreate<B, K> create, {
-    String? debugName,
-  }) =>
-      BlocProviderFactory<B, S, K>(
-        create,
-        dispose: (bloc) => bloc.close(),
-        debugName: debugName,
-      );
+  static final factory = BlocProviderFactory.new;
 }
 
-class FactoryBlocProvider<B extends BlocBase<S>, S, TParam> extends FactoryProviderBase<B, TParam>
-    with BlocBindingMixin<B, S> {
+class FactoryBlocProvider<TBloc extends BlocBase<TState>, TState, TParam>
+    extends FactoryProviderBase<TBloc, TParam> with BlocBindingMixin<TBloc, TState> {
   FactoryBlocProvider(
     super.create, {
     required super.factory,
@@ -40,12 +32,12 @@ class FactoryBlocProvider<B extends BlocBase<S>, S, TParam> extends FactoryProvi
   });
 }
 
-class BlocProviderFactory<B extends BlocBase<S>, S, K>
-    extends ProviderFactoryBase<FactoryBlocProvider<B, S, K>, B, K> {
-  BlocProviderFactory(super.create, {required super.dispose, required super.debugName});
+class BlocProviderFactory<TBloc extends BlocBase<TState>, TState, TParam>
+    extends ProviderFactoryBase<FactoryBlocProvider<TBloc, TState, TParam>, TBloc, TParam> {
+  BlocProviderFactory(super.create, {super.dispose, super.debugName});
 
   @override
-  FactoryBlocProvider<B, S, K> call(K param) {
+  FactoryBlocProvider<TBloc, TState, TParam> call(TParam param) {
     return FactoryBlocProvider(
       (read) => create(read, param),
       factory: this,
@@ -56,15 +48,15 @@ class BlocProviderFactory<B extends BlocBase<S>, S, K>
   }
 }
 
-mixin BlocBindingMixin<B extends BlocBase<S>, S> implements ProviderBase<B> {
+mixin BlocBindingMixin<TBloc extends BlocBase<TState>, TState> implements ProviderBase<TBloc> {
   Widget builder({
     Key? key,
-    flutter_bloc.BlocBuilderCondition<S>? buildWhen,
-    required flutter_bloc.BlocWidgetBuilder<S> builder,
+    flutter_bloc.BlocBuilderCondition<TState>? buildWhen,
+    required flutter_bloc.BlocWidgetBuilder<TState> builder,
   }) {
     return Builder(
       key: key,
-      builder: (context) => BlocBuilder<B, S>(
+      builder: (context) => BlocBuilder<TBloc, TState>(
         bloc: of(context, listen: true),
         builder: builder,
         buildWhen: buildWhen,
@@ -74,11 +66,11 @@ mixin BlocBindingMixin<B extends BlocBase<S>, S> implements ProviderBase<B> {
 
   BlocListenerSingleChildMixin listener({
     Key? key,
-    flutter_bloc.BlocListenerCondition<S>? listenWhen,
-    required flutter_bloc.BlocWidgetListener<S> listener,
+    flutter_bloc.BlocListenerCondition<TState>? listenWhen,
+    required flutter_bloc.BlocWidgetListener<TState> listener,
     Widget? child,
   }) {
-    return VesselBlocListener<B, S>(
+    return VesselBlocListener<TBloc, TState>(
       key: key,
       provider: this,
       listener: listener,
@@ -89,14 +81,14 @@ mixin BlocBindingMixin<B extends BlocBase<S>, S> implements ProviderBase<B> {
 
   Widget consumer({
     Key? key,
-    flutter_bloc.BlocListenerCondition<S>? listenWhen,
-    required flutter_bloc.BlocWidgetListener<S> listener,
-    flutter_bloc.BlocBuilderCondition<S>? buildWhen,
-    required flutter_bloc.BlocWidgetBuilder<S> builder,
+    flutter_bloc.BlocListenerCondition<TState>? listenWhen,
+    required flutter_bloc.BlocWidgetListener<TState> listener,
+    flutter_bloc.BlocBuilderCondition<TState>? buildWhen,
+    required flutter_bloc.BlocWidgetBuilder<TState> builder,
   }) {
     return Builder(
       key: key,
-      builder: (context) => BlocConsumer<B, S>(
+      builder: (context) => BlocConsumer<TBloc, TState>(
         bloc: of(context, listen: true),
         buildWhen: buildWhen,
         builder: builder,
@@ -106,14 +98,14 @@ mixin BlocBindingMixin<B extends BlocBase<S>, S> implements ProviderBase<B> {
     );
   }
 
-  Widget selector<T>({
+  Widget selector<TSelected>({
     Key? key,
-    required flutter_bloc.BlocWidgetSelector<S, T> selector,
-    required flutter_bloc.BlocWidgetBuilder<T> builder,
+    required flutter_bloc.BlocWidgetSelector<TState, TSelected> selector,
+    required flutter_bloc.BlocWidgetBuilder<TSelected> builder,
   }) {
     return Builder(
       key: key,
-      builder: (context) => BlocSelector<B, S, T>(
+      builder: (context) => BlocSelector<TBloc, TState, TSelected>(
         bloc: of(context, listen: true),
         selector: selector,
         builder: builder,

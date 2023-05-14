@@ -1,11 +1,11 @@
 part of 'internal_api.dart';
 
-class ProviderFactory<TValue, TParam> extends ProviderFactoryBase<
-    FactoryProvider<TValue, TParam>, TValue, TParam> {
+class ProviderFactory<TValue, TParam>
+    extends ProviderFactoryBase<FactoryProvider<TValue, TParam>, TValue, TParam> {
   ProviderFactory(
     super.create, {
-    required super.dispose,
-    required super.debugName,
+    super.dispose,
+    super.debugName,
   });
 
   @override
@@ -35,16 +35,7 @@ class Provider<T> extends SingleProviderBase<T> {
   ///
   /// Calling `provider(param)` returns new provider, which can be read
   /// Example: `container.read(provider(param))`
-  static ProviderFactory<T, K> factory<T, K>(
-    ProviderFactoryCreate<T, K> create, {
-    Dispose<T>? dispose,
-    String? debugName,
-  }) =>
-      ProviderFactory<T, K>(
-        create,
-        dispose: dispose,
-        debugName: debugName,
-      );
+  static final factory = ProviderFactory.new;
 }
 
 class FactoryProvider<T, K> extends FactoryProviderBase<T, K> {

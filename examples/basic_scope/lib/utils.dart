@@ -6,7 +6,7 @@ library _common;
 import 'package:flutter/material.dart';
 import 'package:vessel_flutter/vessel_flutter.dart';
 
-final counterProvider = Provider(
+final counterProvider = Provider<ValueNotifier<int>>(
   (_) => ValueNotifier(0),
   dispose: (state) {
     print("Dispose");

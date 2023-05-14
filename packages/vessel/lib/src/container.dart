@@ -18,10 +18,8 @@ class ProviderContainer {
     this.parent,
     List<Override> overrides = const [],
   }) : overrides = overrides.toSet() {
-    final HashMap<ProviderFactoryBase, FactoryOverride> factoryOverrides =
-        HashMap();
-    final HashMap<SingleProviderBase, ProviderOverride> providerOverrides =
-        HashMap();
+    final HashMap<ProviderFactoryBase, FactoryOverride> factoryOverrides = HashMap();
+    final HashMap<SingleProviderBase, ProviderOverride> providerOverrides = HashMap();
 
     for (final override in overrides) {
       if (override is ProviderOverride) {
@@ -52,7 +50,7 @@ class ProviderContainer {
   @visibleForTesting
   final ProviderContainer? parent;
 
-  /// 1 to 1 mapping of [provider] and its dependencies
+  /// 1 to 1 mapping of [provider] to its dependencies
   /// if [provider] is present as key in [providables], it's guaranteed
   /// that it's [provider.toScopable] is present in [dependencies].
   @visibleForTesting
@@ -88,8 +86,8 @@ class ProviderContainer {
 
     ProviderContainer? host = this;
     while (host != null) {
-      final providables = host.providables[provider];
-      if (providables != null) {
+      final providable = host.providables[provider];
+      if (providable != null) {
         break;
       }
       host = host.parent;
@@ -138,8 +136,7 @@ class ProviderContainer {
     return isScopedDirectly || node.dependencies.any(_isScoped);
   }
 
-  _CreateResult<T> _create<T>(ProviderBase<T> provider) =>
-      _circularDependencyCheck(
+  _CreateResult<T> _create<T>(ProviderBase<T> provider) => _circularDependencyCheck(
         lock: provider,
         () {
           final dependencies = HashSet<_DependencyNode>();
@@ -147,8 +144,7 @@ class ProviderContainer {
           final override = _findOverride<T>(provider);
           final overrideOrProvider = override ?? provider;
 
-          final value =
-              overrideOrProvider.create(<T>(ProviderBase<T> dependency) {
+          final value = overrideOrProvider.create(<T>(ProviderBase<T> dependency) {
             final result = _read(dependency);
             dependencies.add(result.node);
             return result.value;
@@ -203,8 +199,7 @@ class ProviderContainer {
     required ProviderBase<T> lock,
   }) {
     if (_circularDependencySentinel == lock) {
-      throw CircularDependencyException(
-          "There is a circular dependency on $lock");
+      throw CircularDependencyException("There is a circular dependency on $lock");
     }
 
     _circularDependencySentinel ??= lock;
@@ -240,8 +235,7 @@ class _DependencyNode {
   int get hashCode => scopable.hashCode;
 
   @override
-  operator ==(Object? other) =>
-      other is _DependencyNode && other.scopable == scopable;
+  operator ==(Object? other) => other is _DependencyNode && other.scopable == scopable;
 }
 
 class _ReadResult<T> {

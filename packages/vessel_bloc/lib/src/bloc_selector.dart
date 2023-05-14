@@ -1,11 +1,12 @@
 import 'package:vessel_bloc/vessel_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart' as flutter_bloc;
 
-class BlocSelector<B extends StateStreamable<S>, S, T> extends flutter_bloc.BlocSelector<B, S, T> {
+class BlocSelector<TBloc extends StateStreamable<TState>, TState, TSelected>
+    extends flutter_bloc.BlocSelector<TBloc, TState, TSelected> {
   BlocSelector({
     super.key,
     required super.selector,
     required super.builder,
-    required B super.bloc,
+    required TBloc super.bloc,
   });
 }
