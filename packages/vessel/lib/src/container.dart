@@ -5,19 +5,26 @@ ProviderBase? _circularDependencySentinel;
 /// Container of providers' instances
 /// It manages parent-child relationship between containers, overrides and scopes
 ///
+/// {@template parent}
+/// [parent] is a container, which will be explored in case [provider] either
+/// cannot be found or instantiated.
+/// {@endtemplate}
 /// {@template overrides}
 /// [overrides] is a list of providers you're willing to scope/override
 /// {@endtemplate}
-/// {@template parent}
-/// [parent] is a container, which will be explored in case [provider] either
-/// cannot be found or isntantiated.
+/// {@template adapters}
+/// [adapters] is a list of adapters, providing additional reusable functionality to specified types
 /// {@endtemplate}
 class ProviderContainer {
   // ignore: public_member_api_docs
   ProviderContainer({
     this.parent,
     List<Override> overrides = const [],
-  }) : overrides = overrides.toSet() {
+    List<ProviderAdapter> adapters = const [],
+  })  : overrides = overrides.toSet(),
+        adapters = parent?.adapters ?? adapters {
+    assert(
+        parent == null || adapters.isEmpty, "adapters could only be set on root ProviderContainer");
     final HashMap<ProviderFactoryBase, FactoryOverride> factoryOverrides = HashMap();
     final HashMap<SingleProviderBase, ProviderOverride> providerOverrides = HashMap();
 
@@ -49,6 +56,10 @@ class ProviderContainer {
   /// {@macro parent}
   @visibleForTesting
   final ProviderContainer? parent;
+
+  /// {@macro adapters}
+  @visibleForTesting
+  final List<ProviderAdapter> adapters;
 
   /// 1 to 1 mapping of [provider] to its dependencies
   /// if [provider] is present as key in [providables], it's guaranteed
@@ -167,9 +178,17 @@ class ProviderContainer {
       ..dependencies[result.dependencyNode.scopable] = result.dependencyNode
       ..providables[result.origin] = result.value;
 
-    final dispose = result.overrideOrProvider.dispose;
-    if (dispose != null) {
-      onDispose.add(() => dispose.call(result.value));
+    var dispose = result.overrideOrProvider.dispose;
+    if (dispose == null) {
+      final adapter =
+          adapters.where((adapter) => adapter.isAdaptable(result.overrideOrProvider)).firstOrNull;
+      if (adapter != null) {
+        dispose = adapter.dispose;
+      }
+    }
+
+    if (dispose case var dispose?) {
+      onDispose.add(() => dispose(result.value));
     }
 
     return _ReadResult(result.dependencyNode, result.value);

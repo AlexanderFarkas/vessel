@@ -1,41 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:vessel_flutter/vessel_flutter.dart';
 
-final provider = ValueNotifierProvider((read) => ValueNotifier(0));
+final provider = Provider((read) => ValueNotifier(0));
 
 void main() {
   return runApp(
     ProviderScope(
-      child: provider.Builder(
+      adapters: [ValueNotifierAdapter()],
+      child: provider.builder(
         builder: (_, value, __) => Text("$value"),
       ),
     ),
   );
 }
 
-class ValueNotifierProvider<T> extends Provider<ValueNotifier<T>> {
-  ValueNotifierProvider(
-    ProviderCreate<ValueNotifier<T>> create, {
-    String? debugName,
-  }) : super(
-          create,
-          dispose: (vn) => vn.dispose(),
-          debugName: debugName,
-        );
+class ValueNotifierAdapter extends ProviderAdapter<ValueNotifier> {
+  @override
+  void dispose(ValueNotifier providerValue) {
+    return providerValue.dispose();
+  }
+}
 
-  // ignore: non_constant_identifier_names
-  Widget Builder({
-    required ValueWidgetBuilder<T> builder,
-    Widget? child,
-  }) =>
-      _ValueNotifierProviderBuilder(
+extension<T> on ProviderBase<ValueNotifier<T>> {
+  Widget builder({required ValueWidgetBuilder<T> builder}) => _ValueNotifierProviderBuilder(
         provider: this,
         builder: builder,
       );
 }
 
 class _ValueNotifierProviderBuilder<T> extends StatelessWidget {
-  final ValueNotifierProvider<T> provider;
+  final ProviderBase<ValueNotifier<T>> provider;
   final ValueWidgetBuilder<T> builder;
   final Widget? child;
 

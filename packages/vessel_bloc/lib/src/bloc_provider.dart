@@ -1,62 +1,30 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:flutter/widgets.dart';
-import 'package:flutter_bloc/flutter_bloc.dart' as flutter_bloc;
 import 'package:vessel_bloc/src/bloc_listener.dart';
+import 'package:flutter_bloc/flutter_bloc.dart' as flutter_bloc;
 import 'package:vessel_bloc/src/bloc_selector.dart';
 
 import 'package:vessel_flutter/vessel_flutter.dart';
 
 import '../vessel_bloc.dart';
 
-class BlocProvider<TBloc extends BlocBase<TState>, TState> extends SingleProviderBase<TBloc>
-    with BlocBindingMixin<TBloc, TState> {
-  BlocProvider(ProviderCreate<TBloc> create, {String? debugName})
-      : super(
-          create,
-          dispose: (bloc) => bloc.close(),
-          debugName: debugName,
-        );
-
-  static final factory = BlocProviderFactory.new;
-}
-
-class FactoryBlocProvider<TBloc extends BlocBase<TState>, TState, TParam>
-    extends FactoryProviderBase<TBloc, TParam> with BlocBindingMixin<TBloc, TState> {
-  FactoryBlocProvider(
-    super.create, {
-    required super.factory,
-    required super.debugName,
-    required super.dispose,
-    required super.param,
-  });
-}
-
-class BlocProviderFactory<TBloc extends BlocBase<TState>, TState, TParam>
-    extends ProviderFactoryBase<FactoryBlocProvider<TBloc, TState, TParam>, TBloc, TParam> {
-  BlocProviderFactory(super.create, {super.dispose, super.debugName});
-
+class BlocProviderAdapter extends ProviderAdapter<BlocBase> {
   @override
-  FactoryBlocProvider<TBloc, TState, TParam> call(TParam param) {
-    return FactoryBlocProvider(
-      (read) => create(read, param),
-      factory: this,
-      debugName: debugName,
-      dispose: dispose,
-      param: param,
-    );
+  Future<void> dispose(BlocBase providerValue) {
+    return providerValue.close();
   }
 }
 
-mixin BlocBindingMixin<TBloc extends BlocBase<TState>, TState> implements ProviderBase<TBloc> {
+extension BlocBindings<TState> on ProviderBase<BlocBase<TState>> {
   Widget builder({
     Key? key,
-    flutter_bloc.BlocBuilderCondition<TState>? buildWhen,
-    required flutter_bloc.BlocWidgetBuilder<TState> builder,
+    bool Function(TState? prev, TState state)? buildWhen,
+    required Widget Function(BuildContext context, TState state) builder,
   }) {
     return Builder(
       key: key,
-      builder: (context) => BlocBuilder<TBloc, TState>(
+      builder: (context) => BlocBuilder<BlocBase<TState>, TState>(
         bloc: of(context, listen: true),
         builder: builder,
         buildWhen: buildWhen,
@@ -70,7 +38,7 @@ mixin BlocBindingMixin<TBloc extends BlocBase<TState>, TState> implements Provid
     required flutter_bloc.BlocWidgetListener<TState> listener,
     Widget? child,
   }) {
-    return VesselBlocListener<TBloc, TState>(
+    return VesselBlocListener<BlocBase<TState>, TState>(
       key: key,
       provider: this,
       listener: listener,
@@ -88,7 +56,7 @@ mixin BlocBindingMixin<TBloc extends BlocBase<TState>, TState> implements Provid
   }) {
     return Builder(
       key: key,
-      builder: (context) => BlocConsumer<TBloc, TState>(
+      builder: (context) => BlocConsumer<BlocBase<TState>, TState>(
         bloc: of(context, listen: true),
         buildWhen: buildWhen,
         builder: builder,
@@ -105,7 +73,7 @@ mixin BlocBindingMixin<TBloc extends BlocBase<TState>, TState> implements Provid
   }) {
     return Builder(
       key: key,
-      builder: (context) => BlocSelector<TBloc, TState, TSelected>(
+      builder: (context) => BlocSelector<BlocBase<TState>, TState, TSelected>(
         bloc: of(context, listen: true),
         selector: selector,
         builder: builder,

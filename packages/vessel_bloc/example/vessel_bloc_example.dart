@@ -3,7 +3,7 @@ import 'package:vessel_flutter/vessel_flutter.dart';
 
 import 'package:vessel_bloc/vessel_bloc.dart';
 
-final counterCubitProvider = BlocProvider<CounterCubit, int>((_) => CounterCubit(0));
+final counterCubitProvider = Provider((_) => CounterCubit(0));
 
 class CounterCubit extends Cubit<int> {
   CounterCubit(super.initialState);

@@ -1,5 +1,15 @@
 vessel_flutter wrapper for [bloc](https://github.com/felangel/bloc) package
 
+## Setup
+Add `BlocProviderAdapter` to `ProviderContainer.adapters`:
+```dart
+void main() {
+  final container = ProviderContainer(
+    adapters: [BlocProviderAdapter()],
+  );
+  // ...
+}
+```
 ## Usage
 
 Lets take a look at how to use `BlocProvider` to provide a `CounterCubit` to a `CounterPage` and react to state changes with `BlocBuilder`.

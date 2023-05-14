@@ -4,11 +4,13 @@ import 'package:vessel/vessel.dart';
 
 class ProviderScope extends StatefulWidget {
   final List<Override> overrides;
+  final List<ProviderAdapter> adapters;
   final ProviderContainer? parent;
   final Widget child;
   const ProviderScope({
     Key? key,
     this.overrides = const [],
+    this.adapters = const [],
     required this.child,
     this.parent,
   }) : super(key: key);
@@ -24,7 +26,11 @@ class _ProviderScopeState extends State<ProviderScope> {
   void initState() {
     super.initState();
     final parent = widget.parent ?? UncontrolledProviderScope._of(context, listen: false);
-    _container = ProviderContainer(overrides: widget.overrides, parent: parent);
+    _container = ProviderContainer(
+      parent: parent,
+      overrides: widget.overrides,
+      adapters: widget.adapters,
+    );
   }
 
   @override
