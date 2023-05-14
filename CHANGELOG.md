@@ -11,6 +11,39 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 Packages with breaking changes:
 
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`vessel` - `v3.1.0`](#vessel---v310)
+ - [`vessel_bloc` - `v3.1.0`](#vessel_bloc---v310)
+ - [`vessel_flutter` - `v3.0.1`](#vessel_flutter---v301)
+
+Packages with dependency updates only:
+
+> Packages listed below depend on other packages in this workspace that have had changes. Their versions have been incremented to bump the minimum dependency versions of the packages they depend upon in this project.
+
+ - `vessel_flutter` - `v3.0.1`
+
+---
+
+#### `vessel` - `v3.1.0`
+
+ - **FEAT**: add const constructor to ProviderAdapter.
+
+#### `vessel_bloc` - `v3.1.0`
+
+ - **FEAT**: add const constructor to ProviderAdapter.
+
+
+## 2023-05-14
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
  - [`vessel` - `v3.0.0`](#vessel---v300)
  - [`vessel_bloc` - `v3.0.0`](#vessel_bloc---v300)
  - [`vessel_flutter` - `v3.0.0`](#vessel_flutter---v300)
