@@ -9,7 +9,9 @@ import 'package:vessel_flutter/vessel_flutter.dart';
 
 import '../vessel_bloc.dart';
 
-class BlocProviderAdapter extends ProviderAdapter<BlocBase> {
+final class BlocProviderAdapter extends ProviderAdapter<BlocBase> {
+  const BlocProviderAdapter();
+
   @override
   Future<void> dispose(BlocBase providerValue) {
     return providerValue.close();
