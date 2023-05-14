@@ -3,6 +3,37 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2023-05-14
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - [`vessel` - `v2.0.0`](#vessel---v200)
+ - [`vessel_bloc` - `v2.0.0`](#vessel_bloc---v200)
+ - [`vessel_flutter` - `v2.0.0`](#vessel_flutter---v200)
+
+Packages with other changes:
+
+ - There are no other changes in this release.
+
+---
+
+#### `vessel` - `v2.0.0`
+
+ - **BREAKING** **FEAT**: upgrade to Dart 3.
+
+#### `vessel_bloc` - `v2.0.0`
+
+ - **BREAKING** **FEAT**: upgrade to Dart 3.
+
+#### `vessel_flutter` - `v2.0.0`
+
+ - **BREAKING** **FEAT**: upgrade to Dart 3.
+
+
 ## 2023-04-21
 
 ### Changes
