@@ -3,6 +3,37 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2023-06-23
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`vessel` - `v3.2.0`](#vessel---v320)
+ - [`vessel_bloc` - `v3.2.0`](#vessel_bloc---v320)
+ - [`vessel_flutter` - `v3.1.0`](#vessel_flutter---v310)
+
+---
+
+#### `vessel` - `v3.2.0`
+
+ - **FEAT**: add dependOn extension method on context.
+
+#### `vessel_bloc` - `v3.2.0`
+
+ - **FEAT**: add dependOn extension method on context.
+
+#### `vessel_flutter` - `v3.1.0`
+
+ - **FEAT**: add dependOn extension method on context.
+
+
 ## 2023-05-14
 
 ### Changes

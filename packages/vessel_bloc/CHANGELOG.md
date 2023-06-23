@@ -1,3 +1,7 @@
+## 3.2.0
+
+ - **FEAT**: add dependOn extension method on context.
+
 ## 3.1.0
 
  - **FEAT**: add const constructor to ProviderAdapter.
