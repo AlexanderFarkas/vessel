@@ -28,16 +28,24 @@ class ProviderContainer {
     final HashMap<ProviderFactoryBase, FactoryOverride> factoryOverrides = HashMap();
     final HashMap<SingleProviderBase, ProviderOverride> providerOverrides = HashMap();
 
+    if (parent case var parent?) {
+      _factoryOverrides.addAll(parent._factoryOverrides);
+      _providerOverrides.addAll(parent._providerOverrides);
+    }
+
     for (final override in overrides) {
       if (override is ProviderOverride) {
         providerOverrides[override._origin] = override;
       } else if (override is FactoryOverride) {
         factoryOverrides[override._origin] = override;
       }
+      _scoped.add(override._origin);
     }
-    _factoryOverrides = factoryOverrides;
-    _providerOverrides = providerOverrides;
+    _factoryOverrides.addAll(factoryOverrides);
+    _providerOverrides.addAll(providerOverrides);
   }
+
+  late final _scoped = HashSet<MaybeScoped>();
 
   /// Reads [provider]'s value from container.
   /// If [provider]'s value hasn't been created, this function creates it and puts it in cache.
@@ -75,8 +83,8 @@ class ProviderContainer {
   /// {@macro overrides}
   @visibleForTesting
   final Set<Override> overrides;
-  late final HashMap<ProviderFactoryBase, FactoryOverride> _factoryOverrides;
-  late final HashMap<SingleProviderBase, ProviderOverride> _providerOverrides;
+  final _factoryOverrides = HashMap<ProviderFactoryBase, FactoryOverride>();
+  final _providerOverrides = HashMap<SingleProviderBase, ProviderOverride>();
 
   /// List of dispose functions.
   /// Directly used in [dispose] method.
@@ -140,9 +148,7 @@ class ProviderContainer {
   /// Essentially it checks if one of [node.provider] dependencies is present in [overrides].
   bool _isScoped(_DependencyNode node) {
     final scopable = node.scopable;
-    final isScopedDirectly = scopable is ProviderFactoryBase
-        ? _factoryOverrides.keys.contains(scopable)
-        : _providerOverrides.keys.contains(scopable);
+    final isScopedDirectly = _scoped.contains(scopable);
 
     return isScopedDirectly || node.dependencies.any(_isScoped);
   }
@@ -195,27 +201,22 @@ class ProviderContainer {
   }
 
   ProviderBase<T>? _findOverride<T>(ProviderBase<T> provider) {
-    ProviderBase<dynamic>? overridden;
-    ProviderContainer container = this;
+    var overridden = provider is FactoryProviderBase<T, dynamic>
+        ? _factoryOverrides[provider.factory]?.getOverride(provider)
+        : _providerOverrides[provider]?._override;
 
-    while (overridden == null) {
-      overridden = provider is FactoryProviderBase<T, dynamic>
-          ? container._factoryOverrides[provider.factory]?.getOverride(provider)
-          : container._providerOverrides[provider]?._override;
-
-      final parent = container.parent;
-      if (parent == null) {
-        break;
+    if (overridden != null && overridden != provider) {
+      final overrideForOverriden = _findOverride(overridden);
+      if (overrideForOverriden != null) {
+        overridden = overrideForOverriden;
       }
-      container = parent;
     }
-
     return overridden as ProviderBase<T>?;
   }
 
-  _CreateResult<T> _circularDependencyCheck<T>(
-    _CreateResult<T> Function() create, {
-    required ProviderBase<T> lock,
+  T _circularDependencyCheck<T>(
+    T Function() inner, {
+    required ProviderBase lock,
   }) {
     if (_circularDependencySentinel == lock) {
       throw CircularDependencyException("There is a circular dependency on $lock");
@@ -224,7 +225,7 @@ class ProviderContainer {
     _circularDependencySentinel ??= lock;
 
     try {
-      return create();
+      return inner();
     } finally {
       _circularDependencySentinel = null;
     }

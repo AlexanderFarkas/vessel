@@ -23,8 +23,7 @@ class Wizard {}
 
 void main() {
   test("Direct", () {
-    final warriorProvider =
-        Provider.factory((read, Weapon weapon) => Warrior(weapon));
+    final warriorProvider = Provider.factory((read, Weapon weapon) => Warrior(weapon));
     final wizzardProvider = Provider((read) => Wizard());
 
     final root = ProviderContainer();
@@ -34,13 +33,11 @@ void main() {
 
     expect(warrior1, equals(warrior2));
 
+    final spearManProvider = Provider((read) => Warrior(Weapon.spear));
     final onlySpears = ProviderContainer(
       parent: root,
-      overrides: [
-        warriorProvider.overrideWith((weapon) => warriorProvider(Weapon.spear))
-      ],
+      overrides: [warriorProvider.overrideWith((weapon) => spearManProvider)],
     );
-
     final warrior3 = onlySpears.read(warriorProvider(Weapon.sword));
     final warrior4 = onlySpears.read(warriorProvider(Weapon.sword));
     final wizzard2 = onlySpears.read(wizzardProvider);
@@ -51,11 +48,10 @@ void main() {
     final warrior5 = onlySpears.read(warriorProvider(Weapon.spear));
     expect(warrior4, isNot(equals(warrior5)));
 
+    final swordmanProvider = Provider((read) => Warrior(Weapon.sword));
     final onlySwords = ProviderContainer(
       parent: onlySpears,
-      overrides: [
-        warriorProvider.overrideWith((weapon) => warriorProvider(Weapon.sword))
-      ],
+      overrides: [warriorProvider.overrideWith((weapon) => swordmanProvider)],
     );
 
     final warrior6 = onlySwords.read(warriorProvider(Weapon.spear));
@@ -69,9 +65,7 @@ void main() {
 
     final againNormalBarracks = ProviderContainer(
       parent: onlySwords,
-      overrides: [
-        warriorProvider.overrideWith((weapon) => warriorProvider(weapon))
-      ],
+      overrides: [warriorProvider.overrideWith(warriorProvider)],
     );
 
     final warrior9 = againNormalBarracks.read(warriorProvider(Weapon.spear));
@@ -129,8 +123,7 @@ void main() {
       expect(child.providables.length, equals(2));
 
       // we expect them to be different
-      expect(child.read(spearManProvider),
-          isNot(equals(child.read(swordManProvider))));
+      expect(child.read(spearManProvider), isNot(equals(child.read(swordManProvider))));
     });
 
     test("root first", () {
@@ -144,8 +137,7 @@ void main() {
       expect(root.providables.length, equals(2));
       expect(child.providables.length, equals(2));
       // we expect them to be different
-      expect(child.read(spearManProvider),
-          isNot(equals(child.read(swordManProvider))));
+      expect(child.read(spearManProvider), isNot(equals(child.read(swordManProvider))));
     });
   });
 }

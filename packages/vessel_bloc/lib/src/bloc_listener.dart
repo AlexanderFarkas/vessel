@@ -35,7 +35,7 @@ class VesselBlocListener<TBloc extends BlocBase<TState>, TState> extends SingleC
   @override
   Widget buildWithChild(BuildContext context, Widget? child) {
     return BlocListener(
-      bloc: provider.of(context, listen: true),
+      bloc: context.dependOn(provider),
       listener: listener,
       listenWhen: listenWhen,
       child: child,

@@ -37,8 +37,7 @@ class DisposableCubit {
 }
 
 final cubitProvider = Provider((ref) => SimpleCubit());
-final familyProvider =
-    Provider.factory<FamilyCubit, int>((ref, number) => FamilyCubit(number));
+final familyProvider = Provider.factory<FamilyCubit, int>((ref, number) => FamilyCubit(number));
 
 void main() {
   late ProviderContainer container;
@@ -177,10 +176,9 @@ void main() {
       overrides: [provider2.scope()],
       parent: container,
     );
-    final containerChild2 =
-        ProviderContainer(overrides: [], parent: containerChild);
-    final containerChild3 = ProviderContainer(
-        overrides: [provider2.scope()], parent: containerChild2);
+    final containerChild2 = ProviderContainer(overrides: [], parent: containerChild);
+    final containerChild3 =
+        ProviderContainer(overrides: [provider2.scope()], parent: containerChild2);
 
     // now provider3 also scoped inside containerChild
     final instance3 = containerChild2.read(provider3);
@@ -212,18 +210,14 @@ void main() {
       group("single values", () {
         test("original comment", () {
           final provider1 = Provider((_) => Counter(1));
-          final provider2 =
-              Provider((read) => Counter(read(provider1).count + 1));
-          final provider3 =
-              Provider((read) => Counter(read(provider2).count + 1));
+          final provider2 = Provider((read) => Counter(read(provider1).count + 1));
+          final provider3 = Provider((read) => Counter(read(provider2).count + 1));
 
           final root = ProviderContainer();
           final child1 = ProviderContainer(overrides: [], parent: root);
-          final child2 = ProviderContainer(
-              overrides: [provider2.scope(), provider3.scope()],
-              parent: child1);
-          final child3 =
-              ProviderContainer(overrides: [provider1.scope()], parent: child2);
+          final child2 =
+              ProviderContainer(overrides: [provider2.scope(), provider3.scope()], parent: child1);
+          final child3 = ProviderContainer(overrides: [provider1.scope()], parent: child2);
 
           child3.read(provider3);
           expect(child3.providablesLength(), equals(3));
@@ -234,17 +228,13 @@ void main() {
 
         test("tweaked", () {
           final provider1 = Provider((_) => Counter(1));
-          final provider2 =
-              Provider((read) => Counter(read(provider1).count + 1));
-          final provider3 =
-              Provider((read) => Counter(read(provider2).count + 1));
+          final provider2 = Provider((read) => Counter(read(provider1).count + 1));
+          final provider3 = Provider((read) => Counter(read(provider2).count + 1));
 
           final root = ProviderContainer();
           final child1 = ProviderContainer(overrides: [], parent: root);
-          final child2 =
-              ProviderContainer(overrides: [provider2.scope()], parent: child1);
-          final child3 =
-              ProviderContainer(overrides: [provider1.scope()], parent: child2);
+          final child2 = ProviderContainer(overrides: [provider2.scope()], parent: child1);
+          final child3 = ProviderContainer(overrides: [provider1.scope()], parent: child2);
 
           child3.read(provider3);
           child3.read(provider2);
@@ -256,19 +246,17 @@ void main() {
       });
       group("factory values", () {
         final provider1 = Provider.factory((_, int count) => Counter(1));
-        final provider2 = Provider.factory(
-            (read, int count) => Counter(read(provider1(count)).count + 1));
-        final provider3 = Provider.factory(
-            (read, int count) => Counter(read(provider2(count)).count + 1));
+        final provider2 =
+            Provider.factory((read, int count) => Counter(read(provider1(count)).count + 1));
+        final provider3 =
+            Provider.factory((read, int count) => Counter(read(provider2(count)).count + 1));
 
         test("original comment", () {
           final root = ProviderContainer();
           final child1 = ProviderContainer(overrides: [], parent: root);
-          final child2 = ProviderContainer(
-              overrides: [provider2.scope(), provider3.scope()],
-              parent: child1);
-          final child3 =
-              ProviderContainer(overrides: [provider1.scope()], parent: child2);
+          final child2 =
+              ProviderContainer(overrides: [provider2.scope(), provider3.scope()], parent: child1);
+          final child3 = ProviderContainer(overrides: [provider1.scope()], parent: child2);
 
           child3.read(provider3(3));
           expect(child3.providablesLength(), equals(3));
@@ -286,10 +274,8 @@ void main() {
         test("tweaked", () {
           final root = ProviderContainer();
           final child1 = ProviderContainer(overrides: [], parent: root);
-          final child2 =
-              ProviderContainer(overrides: [provider2.scope()], parent: child1);
-          final child3 =
-              ProviderContainer(overrides: [provider1.scope()], parent: child2);
+          final child2 = ProviderContainer(overrides: [provider2.scope()], parent: child1);
+          final child3 = ProviderContainer(overrides: [provider1.scope()], parent: child2);
 
           child3.read(provider3(3));
           expect(child3.providablesLength(), equals(3));
@@ -339,9 +325,7 @@ void main() {
 
       final root = ProviderContainer();
       final bossRoom = ProviderContainer(
-        overrides: [
-          healthProvider.overrideWith((health) => bossHealthProvider)
-        ],
+        overrides: [healthProvider.overrideWith((health) => bossHealthProvider)],
       );
 
       final generalHealth = root.read(healthProvider(100));
@@ -350,6 +334,31 @@ void main() {
       final bossHealth = bossRoom.read(healthProvider(200));
       expect(bossHealth, equals(50));
     });
+  });
+
+  test("Scoped providers work with overrides", () {
+    final provider = Provider((_) => 0);
+    final overrider = Provider((_) => 42);
+
+    final rootContainer = ProviderContainer(overrides: [provider.overrideWith(overrider)]);
+    final childContainer = ProviderContainer(
+      parent: rootContainer,
+      overrides: [provider.scope()],
+    );
+
+    expect(childContainer.read(provider), equals(42));
+  });
+  test("Scoped factory providers work with overrides", () {
+    final provider = Provider.factory((_, int value) => 0);
+    final overrider = Provider.factory((_, int value) => 42);
+
+    final rootContainer = ProviderContainer(overrides: [provider.overrideWith(overrider)]);
+    final childContainer = ProviderContainer(
+      parent: rootContainer,
+      overrides: [provider.scope()],
+    );
+
+    expect(childContainer.read(provider(2)), equals(42));
   });
 }
 

@@ -27,7 +27,7 @@ extension BlocBindings<TState> on ProviderBase<BlocBase<TState>> {
     return Builder(
       key: key,
       builder: (context) => BlocBuilder<BlocBase<TState>, TState>(
-        bloc: of(context, listen: true),
+        bloc: context.dependOn(this),
         builder: builder,
         buildWhen: buildWhen,
       ),
@@ -59,7 +59,7 @@ extension BlocBindings<TState> on ProviderBase<BlocBase<TState>> {
     return Builder(
       key: key,
       builder: (context) => BlocConsumer<BlocBase<TState>, TState>(
-        bloc: of(context, listen: true),
+        bloc: context.dependOn(this),
         buildWhen: buildWhen,
         builder: builder,
         listenWhen: listenWhen,
@@ -76,7 +76,7 @@ extension BlocBindings<TState> on ProviderBase<BlocBase<TState>> {
     return Builder(
       key: key,
       builder: (context) => BlocSelector<BlocBase<TState>, TState, TSelected>(
-        bloc: of(context, listen: true),
+        bloc: context.dependOn(this),
         selector: selector,
         builder: builder,
       ),
